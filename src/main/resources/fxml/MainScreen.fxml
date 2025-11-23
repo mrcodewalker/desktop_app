@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.MainScreenController" stylesheets="/styles/styles.css">
+   <top>
+      <VBox spacing="10.0" styleClass="header-container">
+         <padding>
+            <Insets bottom="20.0" left="30.0" right="30.0" top="30.0" />
+         </padding>
+         <children>
+            <Label fx:id="welcomeLabel" text="Chào mừng đến với KMA Legend Desktop" styleClass="welcome-label">
+               <font>
+                  <Font name="System Bold" size="24.0" />
+               </font>
+            </Label>
+            <HBox alignment="CENTER" spacing="15.0">
+               <children>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="scheduleButton" mnemonicParsing="false" onAction="#handleViewSchedule" text="Xem lịch học" styleClass="menu-button" prefWidth="180.0" />
+                  <Button fx:id="virtualScheduleButton" mnemonicParsing="false" onAction="#handleVirtualSchedule" text="Xếp lịch học ảo" styleClass="menu-button" prefWidth="180.0" />
+                  <Button fx:id="scoresButton" mnemonicParsing="false" onAction="#handleViewScores" text="Xem điểm thi" styleClass="menu-button" prefWidth="180.0" />
+                  <Button fx:id="scholarshipButton" mnemonicParsing="false" onAction="#handleViewScholarship" text="Danh sách học bổng dự kiến" styleClass="menu-button" prefWidth="250.0" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="logoutButton" mnemonicParsing="false" onAction="#handleLogout" text="Đăng xuất" styleClass="logout-button" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </top>
+   <left>
+      <VBox spacing="15.0" styleClass="student-info-panel">
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+         <children>
+            <Label text="Thông tin sinh viên" styleClass="section-title">
+               <font>
+                  <Font name="System Bold" size="16.0" />
+               </font>
+            </Label>
+            <Label fx:id="studentNameLabel" text="Họ tên: -" />
+            <Label fx:id="studentCodeLabel" text="Mã SV: -" />
+            <Label fx:id="studentBirthdayLabel" text="Ngày sinh: -" />
+            <Label fx:id="studentGenderLabel" text="Giới tính: -" />
+         </children>
+      </VBox>
+   </left>
+   <center>
+      <VBox alignment="CENTER" spacing="20.0">
+         <padding>
+            <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+         </padding>
+         <children>
+            <Label text="Chọn một tùy chọn từ menu trên để bắt đầu" styleClass="info-label">
+               <font>
+                  <Font size="16.0" />
+               </font>
+            </Label>
+         </children>
+      </VBox>
+   </center>
+</BorderPane>
+

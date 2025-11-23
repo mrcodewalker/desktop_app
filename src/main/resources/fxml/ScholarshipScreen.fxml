@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.ScholarshipController" stylesheets="/styles/styles.css">
+   <top>
+      <VBox spacing="10.0" styleClass="header-container">
+         <padding>
+            <Insets bottom="15.0" left="30.0" right="30.0" top="20.0" />
+         </padding>
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="15.0">
+               <children>
+                  <Button fx:id="backButton" mnemonicParsing="false" onAction="#handleBack" text="← Quay lại" styleClass="back-button" />
+                  <Label text="Danh sách học bổng dự kiến" styleClass="page-title">
+                     <font>
+                        <Font name="System Bold" size="22.0" />
+                     </font>
+                  </Label>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                     <children>
+                        <Label text="Lọc theo khóa:" styleClass="status-label" />
+                        <ComboBox fx:id="courseFilterComboBox" prefWidth="150.0" />
+                        <Button fx:id="filterButton" mnemonicParsing="false" onAction="#handleFilter" text="🔍 Lọc" styleClass="menu-button" />
+                     </children>
+                  </HBox>
+               </children>
+            </HBox>
+            <Label fx:id="statusLabel" text="Chọn khóa và nhấn Lọc để xem danh sách" styleClass="status-label" />
+         </children>
+      </VBox>
+   </top>
+   <center>
+      <AnchorPane>
+         <children>
+            <TableView fx:id="scholarshipTable" styleClass="scores-table" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
+               <columns>
+                  <TableColumn fx:id="rankColumn" prefWidth="80.0" text="Thứ hạng" />
+                  <TableColumn fx:id="studentCodeColumn" prefWidth="150.0" text="Mã sinh viên" />
+                  <TableColumn fx:id="studentNameColumn" prefWidth="250.0" text="Họ tên" />
+                  <TableColumn fx:id="studentClassColumn" prefWidth="150.0" text="Lớp" />
+                  <TableColumn fx:id="gpaColumn" prefWidth="100.0" text="GPA" />
+                  <TableColumn fx:id="classificationColumn" prefWidth="120.0" text="Xếp loại" />
+                  <TableColumn fx:id="scholarshipTypeColumn" prefWidth="200.0" text="Loại học bổng" />
+               </columns>
+            </TableView>
+         </children>
+      </AnchorPane>
+   </center>
+</BorderPane>
+

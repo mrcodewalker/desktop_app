@@ -1,5 +1,28 @@
-package org.example;public class Main {
+package org.example;
+
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+
+public class Main extends Application {
+    
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LoginScreen.fxml"));
+        Parent root = loader.load();
+        
+        Scene scene = new Scene(root, 700, 1000);
+        
+        primaryStage.setTitle("Đăng nhập - KMA Legend Desktop");
+        primaryStage.setScene(scene);
+        primaryStage.setResizable(false);
+        primaryStage.centerOnScreen();
+        primaryStage.show();
+    }
+    
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        launch(args);
     }
 }

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.ScheduleController" stylesheets="/styles/styles.css">
+   <top>
+      <VBox spacing="10.0" styleClass="header-container">
+         <padding>
+            <Insets bottom="15.0" left="30.0" right="30.0" top="20.0" />
+         </padding>
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="15.0">
+               <children>
+                  <Button fx:id="backButton" mnemonicParsing="false" onAction="#handleBack" text="← Quay lại" styleClass="back-button" />
+                  <Label text="Lịch học" styleClass="page-title">
+                     <font>
+                        <Font name="System Bold" size="22.0" />
+                     </font>
+                  </Label>
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Button fx:id="exportIcsButton" mnemonicParsing="false" onAction="#handleExportICS" text="📅 Xuất file ICS" styleClass="menu-button" />
+               </children>
+            </HBox>
+            <Label fx:id="statusLabel" text="Đang tải..." styleClass="status-label" />
+            <HBox spacing="15.0" alignment="CENTER_LEFT">
+               <children>
+                  <Label text="Lọc theo tháng:" style="-fx-font-weight: 500; -fx-text-fill: #2c3e50;" />
+                  <ComboBox fx:id="monthFilterComboBox" onAction="#handleMonthFilter" prefWidth="150.0" promptText="Tất cả tháng" styleClass="modern-combo" />
+                  <Label text="Lọc theo ngày:" style="-fx-font-weight: 500; -fx-text-fill: #2c3e50;" />
+                  <DatePicker fx:id="dateFilterPicker" onAction="#handleDateFilter" prefWidth="150.0" styleClass="modern-datepicker" />
+                  <Button fx:id="clearFilterButton" mnemonicParsing="false" onAction="#handleClearFilter" text="Xóa bộ lọc" styleClass="clear-filter-button" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </top>
+   <center>
+      <SplitPane dividerPositions="0.4" orientation="HORIZONTAL">
+         <items>
+            <VBox spacing="10.0">
+               <padding>
+                  <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+               </padding>
+               <children>
+                  <Label text="📋 Danh sách lịch học" styleClass="section-title">
+                     <font>
+                        <Font name="System Bold" size="15.0" />
+                     </font>
+                  </Label>
+                  <TableView fx:id="scheduleTable" VBox.vgrow="ALWAYS" styleClass="data-table modern-table">
+                     <columns>
+                        <TableColumn fx:id="dayColumn" prefWidth="120.0" text="Ngày" />
+                        <TableColumn fx:id="timeColumn" prefWidth="150.0" text="Thời gian" />
+                        <TableColumn fx:id="subjectColumn" prefWidth="250.0" text="Môn học" />
+                        <TableColumn fx:id="roomColumn" prefWidth="120.0" text="Phòng học" />
+                        <TableColumn fx:id="teacherColumn" prefWidth="200.0" text="Giảng viên" />
+                     </columns>
+                  </TableView>
+                  <Separator />
+                  <Label text="📚 Thông tin chi tiết môn học" styleClass="section-title">
+                     <font>
+                        <Font name="System Bold" size="15.0" />
+                     </font>
+                  </Label>
+                  <ScrollPane fx:id="subjectInfoScrollPane" fitToWidth="true" prefHeight="200.0" VBox.vgrow="NEVER" styleClass="modern-scroll">
+                     <content>
+                        <VBox fx:id="subjectInfoContainer" spacing="10.0">
+                           <padding>
+                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                           </padding>
+                        </VBox>
+                     </content>
+                  </ScrollPane>
+               </children>
+            </VBox>
+            <ScrollPane fx:id="calendarScrollPane" fitToWidth="true" styleClass="modern-scroll">
+               <content>
+                  <VBox fx:id="calendarContainer" spacing="20.0" styleClass="calendar-container">
+                     <padding>
+                        <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+                     </padding>
+                  </VBox>
+               </content>
+            </ScrollPane>
+         </items>
+      </SplitPane>
+   </center>
+</BorderPane>
+

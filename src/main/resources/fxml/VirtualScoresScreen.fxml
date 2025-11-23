@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.VirtualScoresController" stylesheets="/styles/styles.css">
+   <top>
+      <VBox spacing="10.0" styleClass="header-container">
+         <padding>
+            <Insets bottom="15.0" left="30.0" right="30.0" top="20.0" />
+         </padding>
+         <children>
+            <HBox alignment="CENTER_LEFT" spacing="15.0">
+               <children>
+                  <Button fx:id="backButton" mnemonicParsing="false" onAction="#handleBack" text="← Đóng" styleClass="back-button" />
+                  <Label text="Bảng điểm ảo" styleClass="page-title">
+                     <font>
+                        <Font name="System Bold" size="22.0" />
+                     </font>
+                  </Label>
+                  <Button fx:id="addSubjectButton" mnemonicParsing="false" text="➕ Thêm môn học" styleClass="menu-button" />
+                  <Button fx:id="restoreButton" mnemonicParsing="false" text="🔄 Khôi phục từ điểm thi" styleClass="menu-button" />
+                  <Button fx:id="selectAllButton" mnemonicParsing="false" text="☑ Chọn tất cả" styleClass="menu-button" />
+                  <Button fx:id="conversionTableButton" mnemonicParsing="false" text="📊 Bảng điểm quy đổi" styleClass="menu-button" />
+                  <Button fx:id="saveButton" mnemonicParsing="false" text="💾 Lưu lên hệ thống" styleClass="menu-button" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <HBox alignment="CENTER_RIGHT" spacing="15.0" styleClass="gpa-cpa-container">
+                     <children>
+                        <Label fx:id="statisticsLabel" text="" styleClass="status-label" />
+                        <Label fx:id="gpaLabel" text="GPA: -" styleClass="gpa-label" />
+                     </children>
+                  </HBox>
+               </children>
+            </HBox>
+            <Label fx:id="studentInfoLabel" text="" styleClass="status-label">
+               <font>
+                  <Font name="System" size="14.0" />
+               </font>
+            </Label>
+            <Label fx:id="statusLabel" text="Đang tải..." styleClass="status-label" />
+            <Label fx:id="noteLabel" text="" styleClass="formula-label">
+               <font>
+                  <Font name="System" size="12.0" />
+               </font>
+            </Label>
+         </children>
+      </VBox>
+   </top>
+   <center>
+      <AnchorPane>
+         <children>
+            <TableView fx:id="scoresTable" styleClass="scores-table" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
+               <columns>
+                  <TableColumn fx:id="selectedColumn" prefWidth="80.0" text="Chọn" />
+                  <TableColumn fx:id="subjectNameColumn" prefWidth="250.0" text="Tên môn học" />
+                  <TableColumn fx:id="creditColumn" prefWidth="80.0" text="Tín chỉ" />
+                  <TableColumn fx:id="scoreFirstColumn" prefWidth="180.0" text="Điểm thành phần 1 (Điểm GK)" />
+                  <TableColumn fx:id="scoreSecondColumn" prefWidth="180.0" text="Điểm thành phần 2 (QT)" />
+                  <TableColumn fx:id="scoreFinalColumn" prefWidth="120.0" text="Điểm cuối kỳ" />
+                  <TableColumn fx:id="scoreOverallColumn" prefWidth="130.0" text="Điểm tổng kết" />
+                  <TableColumn fx:id="scoreTextColumn" prefWidth="100.0" text="Điểm chữ" />
+                  <TableColumn fx:id="actionColumn" prefWidth="100.0" text="Thao tác" />
+               </columns>
+            </TableView>
+         </children>
+      </AnchorPane>
+   </center>
+</BorderPane>
+
