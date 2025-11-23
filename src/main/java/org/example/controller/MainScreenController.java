@@ -129,8 +129,10 @@ public class MainScreenController {
             }
             
             Stage stage = (Stage) scheduleButton.getScene().getWindow();
-            stage.setScene(new Scene(root, 1200, 800));
+            stage.setScene(new Scene(root, 1400, 1000));
             stage.setTitle("Lịch học");
+            stage.setMinWidth(1200);
+            stage.setMinHeight(800);
             
         } catch (Exception e) {
             e.printStackTrace();

@@ -479,6 +479,98 @@
     -fx-background-color: #f5f5f5;
 }
 
+/* View Toggle Button */
+.view-toggle-button {
+    -fx-background-color: linear-gradient(to bottom, #9b59b6, #8e44ad);
+    -fx-text-fill: white;
+    -fx-pref-width: 150px;
+    -fx-pref-height: 38px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+    -fx-font-weight: 500;
+    -fx-effect: dropshadow(three-pass-box, rgba(155,89,182,0.3), 4, 0, 0, 2);
+}
+
+.view-toggle-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #8e44ad, #7d3c98);
+    -fx-effect: dropshadow(three-pass-box, rgba(155,89,182,0.4), 6, 0, 0, 3);
+}
+
+.view-toggle-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #7d3c98, #6c3483);
+    -fx-effect: dropshadow(three-pass-box, rgba(155,89,182,0.2), 2, 0, 0, 1);
+}
+
+/* Calendar Grid Styles */
+.calendar-day-cell {
+    -fx-background-color: white;
+    -fx-border-color: #e0e0e0;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-padding: 5;
+    -fx-alignment: top-center;
+}
+
+.calendar-day-cell:hover {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: #3498db;
+}
+
+.calendar-day-cell.today {
+    -fx-background-color: #e8f4f8;
+    -fx-border-color: #3498db;
+    -fx-border-width: 2;
+}
+
+.calendar-day-cell.other-month {
+    -fx-background-color: #f5f5f5;
+    -fx-text-fill: #bdc3c7;
+}
+
+.calendar-day-cell.has-schedule {
+    -fx-background-color: #fff9e6;
+}
+
+.calendar-day-cell.has-schedule.today {
+    -fx-background-color: #e8f4f8;
+}
+
+/* Calendar Navigation */
+.calendar-navigation {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 0);
+}
+
+.nav-month-button {
+    -fx-background-color: linear-gradient(to bottom, #3498db, #2980b9);
+    -fx-text-fill: white;
+    -fx-pref-width: 50px;
+    -fx-pref-height: 50px;
+    -fx-background-radius: 25px;
+    -fx-cursor: hand;
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.3), 4, 0, 0, 2);
+}
+
+.nav-month-button:hover {
+    -fx-background-color: linear-gradient(to bottom, #2980b9, #21618c);
+    -fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.4), 6, 0, 0, 3);
+}
+
+.nav-month-button:pressed {
+    -fx-background-color: linear-gradient(to bottom, #21618c, #1b4f72);
+    -fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.2), 2, 0, 0, 1);
+}
+
+.current-month-label {
+    -fx-text-fill: #2980b9;
+    -fx-padding: 10px 30px;
+    -fx-background-color: linear-gradient(to bottom, #e8f4f8, #d6eaf8);
+    -fx-background-radius: 8;
+    -fx-min-width: 250px;
+}
+
 /* Scores Table Styles */
 .scores-table {
     -fx-background-color: white;

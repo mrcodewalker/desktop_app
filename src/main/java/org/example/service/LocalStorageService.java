@@ -21,6 +21,7 @@ public class LocalStorageService {
     private static final String FILTER_STATE_FILE = "filter_state.json";
     private static final String CREDENTIALS_FILE = "credentials.json";
     private static final String BACKUP_SCORES_FILE = "backup_scores.json";
+    private static final String VIRTUAL_SCHEDULE_SELECTIONS_FILE = "virtual_schedule_selections.json";
     
     private LocalStorageService() {
         // Tạo thư mục nếu chưa có
@@ -132,6 +133,24 @@ public class LocalStorageService {
     }
     
     /**
+     * Lưu danh sách môn học ảo đã chọn (danh sách courseName)
+     */
+    public void saveVirtualScheduleSelections(com.google.gson.JsonArray selections) throws IOException {
+        saveToFile(VIRTUAL_SCHEDULE_SELECTIONS_FILE, selections.toString());
+    }
+    
+    /**
+     * Đọc danh sách môn học ảo đã chọn
+     */
+    public com.google.gson.JsonArray loadVirtualScheduleSelections() throws IOException {
+        String content = loadFromFile(VIRTUAL_SCHEDULE_SELECTIONS_FILE);
+        if (content != null && !content.isEmpty()) {
+            return JsonParser.parseString(content).getAsJsonArray();
+        }
+        return null;
+    }
+    
+    /**
      * Xóa tất cả dữ liệu
      */
     public void clearAll() {
@@ -141,6 +160,7 @@ public class LocalStorageService {
             deleteFile(FILTER_STATE_FILE);
             deleteFile(CREDENTIALS_FILE);
             deleteFile(BACKUP_SCORES_FILE);
+            deleteFile(VIRTUAL_SCHEDULE_SELECTIONS_FILE);
         } catch (IOException e) {
             System.err.println("Error clearing storage: " + e.getMessage());
         }
