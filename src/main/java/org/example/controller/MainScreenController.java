@@ -26,6 +26,9 @@ public class MainScreenController {
     private Button virtualScheduleButton;
 
     @FXML
+    private Button homeButton;
+
+    @FXML
     private Button scoresButton;
 
     @FXML
@@ -59,7 +62,7 @@ public class MainScreenController {
     public void initialize() {
         // Load từ local storage khi khởi tạo
         loadFromLocalStorage();
-        menuButtons = List.of(scheduleButton, virtualScheduleButton, scoresButton, scholarshipButton);
+        menuButtons = List.of(homeButton, scheduleButton, virtualScheduleButton, scoresButton, scholarshipButton);
     }
 
     private void loadFromLocalStorage() {

@@ -206,7 +206,9 @@ public class LoginController {
             }
             
             Stage stage = (Stage) loginButton.getScene().getWindow();
-            stage.setScene(new Scene(root, 1200, 800));
+            stage.setScene(new Scene(root, 1300, 800));
+            // stage.setFullScreen(true);
+            stage.setResizable(true);
             stage.setTitle("KMA Legend Desktop - Trang chủ");
             
         } catch (IOException e) {

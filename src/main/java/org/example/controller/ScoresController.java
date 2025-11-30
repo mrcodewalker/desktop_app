@@ -66,11 +66,20 @@ public class ScoresController {
     @FXML
     private Button infoButton;
     
-    @FXML
-    private Label statusLabel;
+    // @FXML
+    // private Label statusLabel;
     
     @FXML
-    private Label studentInfoLabel;
+    private Label name;
+    
+    @FXML
+    private Label studentId;
+
+    @FXML
+    private Label sClass;
+
+    @FXML
+    private Label subject;
     
     @FXML
     private Label gpaLabel;
@@ -90,23 +99,23 @@ public class ScoresController {
     // Màu sắc cho điểm số dựa trên giá trị
     private String getScoreColor(double score) {
         if (score >= 9.0) {
-            return "linear-gradient(to right, #11998e, #38ef7d)"; // Xanh lá - Xuất sắc
+            return "#38ef7d"; // Xanh lá - Xuất sắc
         } else if (score >= 8.5) {
-            return "linear-gradient(to right, #667eea, #764ba2)"; // Tím - Giỏi
+            return "#667eea"; // Tím - Giỏi
         } else if (score >= 7.8) {
-            return "linear-gradient(to right, #4facfe, #00f2fe)"; // Xanh dương - Khá
+            return "#4facfe"; // Xanh dương - Khá
         } else if (score >= 7.0) {
-            return "linear-gradient(to right, #43e97b, #38f9d7)"; // Xanh ngọc - Khá
+            return "#38f9d7"; // Xanh ngọc - Khá
         } else if (score >= 6.3) {
-            return "linear-gradient(to right, #fa709a, #fee140)"; // Vàng hồng - Trung bình
+            return "#fee140"; // Vàng hồng - Trung bình
         } else if (score >= 5.5) {
-            return "linear-gradient(to right, #f093fb, #f5576c)"; // Hồng - Trung bình
+            return "#f5576c"; // Hồng - Trung bình
         } else if (score >= 4.8) {
-            return "linear-gradient(to right, #ffa726, #fb8c00)"; // Cam - Trung bình yếu
+            return "#fb8c00"; // Cam - Trung bình yếu
         } else if (score >= 4.0) {
-            return "linear-gradient(to right, #ff7043, #f4511e)"; // Cam đỏ - Trung bình yếu
+            return "#ff7043"; // Cam đỏ - Trung bình yếu
         } else {
-            return "linear-gradient(to right, #ff6b6b, #ee5a6f)"; // Đỏ - Kém
+            return "#ff6b6b"; // Đỏ - Kém
         }
     }
     
@@ -141,8 +150,8 @@ public class ScoresController {
                     setText(null);
                     setGraphic(null);
                 } else {
-                    Label label = new Label("📚 " + item);
-                    label.setStyle("-fx-font-weight: 600; -fx-text-fill: #2c3e50;");
+                    Label label = new Label(item);
+                    label.setStyle("-fx-font-weight: 600; -fx-text-fill: #ffffff;");
                     setGraphic(label);
                     setText(null);
                 }
@@ -158,8 +167,8 @@ public class ScoresController {
                     setText(null);
                     setGraphic(null);
                 } else {
-                    Label label = new Label("💎 " + item);
-                    label.setStyle("-fx-font-weight: 500; -fx-text-fill: #555;");
+                    Label label = new Label(item.toString());
+                    label.setStyle("-fx-font-weight: 600; -fx-text-fill: #ffffff;");
                     setGraphic(label);
                     setText(null);
                     setAlignment(javafx.geometry.Pos.CENTER);
@@ -168,10 +177,10 @@ public class ScoresController {
         });
         
         // Custom cell factory cho điểm số với màu random
-        setupScoreColumn(scoreFirstColumn, "📝"); // Điểm thành phần 1 (Điểm GK)
-        setupScoreColumn(scoreSecondColumn, "📋"); // Điểm thành phần 2 (QT)
-        setupScoreColumn(scoreFinalColumn, "🎯");
-        setupScoreColumn(scoreOverallColumn, "⭐");
+        setupScoreColumn(scoreFirstColumn, ""); // Điểm thành phần 1 (Điểm GK)
+        setupScoreColumn(scoreSecondColumn, ""); // Điểm thành phần 2 (QT)
+        setupScoreColumn(scoreFinalColumn, "");
+        setupScoreColumn(scoreOverallColumn, "");
         
         // Custom cell factory cho điểm chữ
         scoreTextColumn.setCellFactory(column -> new TableCell<ScoreItem, String>() {
@@ -218,9 +227,9 @@ public class ScoresController {
                     getStyleClass().setAll(styleClasses);
                     
                     if (item.isFailed()) {
-                        setStyle("-fx-background-color: #ffebee; -fx-background-insets: 0;");
+                        setStyle("-fx-background-color: #F30024FF; -fx-background-insets: 0;");
                     } else if (item.isRecentSemester()) {
-                        setStyle("-fx-background-color: #fff9c4; -fx-background-insets: 0;");
+                        // setStyle("-fx-background-color: #fff9c4; -fx-background-insets: 0;");
                     } else {
                         setStyle("");
                     }
@@ -263,27 +272,30 @@ public class ScoresController {
     private String getScoreTextColor(String scoreText) {
         if (scoreText == null) return "#95a5a6";
         switch (scoreText.toUpperCase()) {
-            case "A+": return "linear-gradient(to right, #11998e, #38ef7d)";
-            case "A": return "linear-gradient(to right, #667eea, #764ba2)";
-            case "B+": return "linear-gradient(to right, #4facfe, #00f2fe)";
-            case "B": return "linear-gradient(to right, #43e97b, #38f9d7)";
-            case "C+": return "linear-gradient(to right, #fa709a, #fee140)";
-            case "C": return "linear-gradient(to right, #f093fb, #f5576c)";
-            case "D+": return "linear-gradient(to right, #ffa726, #fb8c00)";
-            case "D": return "linear-gradient(to right, #ff7043, #f4511e)";
-            case "F": return "linear-gradient(to right, #ff6b6b, #ee5a6f)";
+            case "A+": return "#38ef7d";
+            case "A": return "#667eea";
+            case "B+": return "#4facfe";
+            case "B": return "#43e97b";
+            case "C+": return "#fa709a";
+            case "C": return "#f093fb";
+            case "D+": return "#ffa726";
+            case "D": return "#ff7043";
+            case "F": return "#ff6b6b";
             default: return "#95a5a6";
         }
     }
     
     public void loadScores() {
-        statusLabel.setText("Đang tải điểm thi...");
+        // statusLabel.setText("Đang tải điểm thi...");
         scoresTable.getItems().clear();
-        studentInfoLabel.setText("");
+        name.setText("");
+        studentId.setText("");
+        sClass.setText("");
+        subject.setText("");
         gpaLabel.setText("GPA: -");
         cpaLabel.setText("CPA: -");
         if (formulaLabel != null) {
-            formulaLabel.setText("📐 Công thức tính điểm: GPA = Σ(Điểm thang 4 × Số tín chỉ) / Σ(Số tín chỉ) | " +
+            formulaLabel.setText("Công thức tính điểm: GPA = Σ(Điểm thang 4 × Số tín chỉ) / Σ(Số tín chỉ) | " +
                     "GPA tính theo các môn kì gần nhất, CPA tính theo tất cả các môn học");
         }
         
@@ -402,7 +414,10 @@ public class ScoresController {
                         if (studentInfoText.length() > 0) studentInfoText.append(" | ");
                         studentInfoText.append("Lớp: ").append(finalStudentClass);
                     }
-                    studentInfoLabel.setText(studentInfoText.toString());
+                    // studentInfoLabel.setText(studentInfoText.toString());
+                    this.name.setText(finalStudentName);
+                    this.studentId.setText(finalStudentCode);
+                    this.sClass.setText(finalStudentClass);
                     
                     List<ScoreItem> allScores = new ArrayList<>();
                     List<ScoreItem> recentSemesterScores = new ArrayList<>();
@@ -434,11 +449,11 @@ public class ScoresController {
                     
                     // Tính GPA (theo môn kì gần nhất)
                     double gpa = calculateGPA(recentSemesterScores);
-                    gpaLabel.setText(String.format("GPA: %.2f", gpa));
+                    gpaLabel.setText(String.format("%.2f", gpa));
                     
                     // Tính CPA (tổng tất cả)
                     double cpa = calculateCPA(allScores);
-                    cpaLabel.setText(String.format("CPA: %.2f", cpa));
+                    cpaLabel.setText(String.format("%.2f", cpa));
                     
                     // Lưu backup scores để có thể restore trong VirtualScoresController
                     try {
@@ -449,12 +464,13 @@ public class ScoresController {
                         System.err.println("Không thể lưu backup scores: " + e.getMessage());
                     }
                     
-                    statusLabel.setText("Đã tải " + scoresTable.getItems().size() + " môn học");
+                    // statusLabel.setText("Đã tải " + scoresTable.getItems().size() + " môn học");
+                    this.subject.setText(String.valueOf(scoresTable.getItems().size())); // You may want to set this to an appropriate value
                 });
                 
             } catch (Exception e) {
                 Platform.runLater(() -> {
-                    statusLabel.setText("Lỗi khi tải điểm thi");
+                    // statusLabel.setText("Lỗi khi tải điểm thi");
                     showAlert(Alert.AlertType.ERROR, "Lỗi", 
                             "Không thể tải điểm thi: " + e.getMessage());
                     e.printStackTrace();
@@ -603,7 +619,7 @@ public class ScoresController {
             
             for (String cell : data[i]) {
                 Label cellLabel = new Label(cell);
-                cellLabel.setStyle("-fx-text-fill: #2c3e50; -fx-font-size: 12px;");
+                cellLabel.setStyle("-fx-text-fill: #FFFFFFFF; -fx-font-size: 12px;");
                 cellLabel.setPrefWidth(120);
                 dataRow.getChildren().add(cellLabel);
             }

@@ -14,19 +14,16 @@
          <children>
             <HBox alignment="CENTER_LEFT" spacing="15.0">
                <children>
-                  <Button fx:id="backButton" mnemonicParsing="false" onAction="#handleBack" text="← Quay lại" styleClass="back-button" />
-                  <Label text="Điểm thi" styleClass="page-title">
+                  <Label text="Kết quả học tập" styleClass="page-title">
                      <font>
                         <Font name="System Bold" size="22.0" />
                      </font>
                   </Label>
-                  <Button fx:id="virtualScoresButton" mnemonicParsing="false" onAction="#handleViewVirtualScores" text="Xem bảng điểm ảo" styleClass="menu-button" />
                   <Region HBox.hgrow="ALWAYS" />
-                  <HBox alignment="CENTER_RIGHT" spacing="15.0" styleClass="gpa-cpa-container">
+                  <HBox alignment="CENTER_RIGHT" spacing="15.0">
                      <children>
-                        <Label fx:id="gpaLabel" text="GPA: -" styleClass="gpa-label" />
-                        <Label fx:id="cpaLabel" text="CPA: -" styleClass="cpa-label" />
-                        <Button fx:id="infoButton" mnemonicParsing="false" onAction="#showGradeConversionTable" styleClass="info-button" />
+                        <Button fx:id="virtualScoresButton" mnemonicParsing="false" onAction="#handleViewVirtualScores" text="Xem bảng điểm ảo" styleClass="menu-button" />
+                        <Button fx:id="infoButton" mnemonicParsing="false" onAction="#showGradeConversionTable" styleClass="info-button" /> 
                      </children>
                   </HBox>
                </children>
@@ -36,17 +33,125 @@
                   <Font name="System" size="14.0" />
                </font>
             </Label>
-            <Label fx:id="statusLabel" text="Đang tải..." styleClass="status-label" />
+            <!-- <Label fx:id="statusLabel" text="Đang tải..." styleClass="status-label" /> -->
             <Label fx:id="formulaLabel" text="" styleClass="formula-label">
                <font>
                   <Font name="System" size="12.0" />
                </font>
             </Label>
+            <HBox alignment="TOP_LEFT" spacing="20.0" styleClass="info-card" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+               
+               <padding>
+                  <Insets bottom="25.0" left="30.0" right="30.0" top="25.0" />
+               </padding>
+
+               <children>
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Họ và tên" styleClass="info-title" />
+                        <Label fx:id="name" text="Nguyễn Ngọc Hà" styleClass="info-value" />
+                     </children>
+                  </VBox>
+
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Mã số sinh viên" styleClass="info-title" />
+                        <Label fx:id="studentId" text="CT070216" styleClass="info-value" />
+                     </children>
+                  </VBox>
+
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Lớp" styleClass="info-title" />
+                        <Label fx:id="sClass" text="CT7B" styleClass="info-value" />
+                     </children>
+                  </VBox>
+
+                  <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+                     <children>
+                        <Label text="Môn học" styleClass="info-title" />
+                        <Label fx:id="subject" text="12" styleClass="info-value" />
+                     </children>
+                  </VBox>
+
+               </children>
+            </HBox>
          </children>
       </VBox>
    </top>
+   <right>
+      <!-- <VBox alignment="TOP_CENTER" spacing="10.0" styleClass="stats-panel">
+         <padding>
+            <Insets bottom="20.0" left="15.0" right="15.0" top="30.0" />
+         </padding>
+         <children>
+            <Label fx:id="gpaLabel" text="GPA: -" styleClass="gpa-label" />
+            <Label fx:id="cpaLabel" text="CPA: -" styleClass="cpa-label" />
+         </children>
+      </VBox> -->
+
+      <HBox alignment="TOP_LEFT" styleClass="header-container">
+         <padding>
+            <Insets top="0" left="0" right="16" bottom="0"/>
+         </padding>
+      
+         <VBox spacing="15.0" styleClass="summary-panel" stylesheets="@styles.css"
+            alignment="TOP_CENTER"  
+            prefHeight="-1" 
+            minHeight="-Infinity" 
+            maxHeight="-Infinity" 
+            >
+            
+            <padding>
+               <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+            </padding>
+
+            <children>
+               <Label text="Tổng kết" styleClass="summary-header">
+                  <VBox.margin>
+                     <Insets right="16.0" />
+                  </VBox.margin>
+               </Label>
+
+               <VBox spacing="5.0" styleClass="stat-card, card-blue">
+                  <padding>
+                     <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
+                  </padding>
+                  <children>
+                     <Label  text="GPA" styleClass="stat-title" />
+                     <Label fx:id="gpaLabel" text="3.45" styleClass="stat-value" />
+                     <Label text="Tính đến học kỳ hiện tại" styleClass="stat-subtitle" />
+                  </children>
+               </VBox>
+
+               <VBox spacing="5.0" styleClass="stat-card, card-dark">
+                  <padding>
+                     <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
+                  </padding>
+                  <children>
+                     <Label text="CPA" styleClass="stat-title" />
+                     <Label fx:id="cpaLabel" text="3.21" styleClass="stat-value" />
+                     <Label text="Tính đến hết học kỳ hiện tại" styleClass="stat-subtitle" />
+                  </children>
+               </VBox>
+
+               <VBox spacing="5.0" styleClass="stat-card, card-dark">
+                  <padding>
+                     <Insets bottom="15.0" left="20.0" right="20.0" top="15.0" />
+                  </padding>
+                  <children>
+                     <Label text="Tín chỉ tích lũy" styleClass="stat-title" />
+                     <Label text="98" styleClass="stat-value" />
+                     <Label text="Tổng số tín chỉ đã hoàn thành" styleClass="stat-subtitle" />
+                  </children>
+               </VBox>
+
+            </children>
+         </VBox>
+      </HBox>
+   </right>
    <center>
-      <AnchorPane>
+      <AnchorPane styleClass="header-container">
          <children>
             <TableView fx:id="scoresTable" styleClass="scores-table" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="20.0">
                <columns>
