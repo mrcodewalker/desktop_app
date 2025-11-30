@@ -7,7 +7,7 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.MainScreenController" stylesheets="/styles/styles.css">
+<BorderPane fx:id="mainBorderPane" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.MainScreenController" stylesheets="/styles/styles.css">
    <left>
       <VBox spacing="10.0" styleClass="primary-sidebar">
          <padding>
@@ -22,7 +22,7 @@
                      </image>
                   </ImageView>
                   <VBox spacing="4.0">
-                     <Label fx:id="studentNameLabel" text="Họ tên: -" styleClass="title-label">
+                     <Label fx:id="studentNameLabel" text="name" styleClass="title-label">
                         <font>
                            <Font name="System Bold" size="16.0" />
                         </font>
@@ -50,7 +50,7 @@
                      </graphic>
                   </Button>
 
-                  <Button fx:id="examButton" maxWidth="Infinity" mnemonicParsing="false" text="Lịch Thi" styleClass="nav-button">
+                  <Button fx:id="virtualScheduleButton" maxWidth="Infinity" onAction="#handleVirtualSchedule" mnemonicParsing="false" text="Xếp lịch ảo" styleClass="nav-button">
                      <graphic>
                         <Label text="📝" styleClass="nav-icon"/>
                      </graphic>
@@ -59,6 +59,12 @@
                   <Button fx:id="scoresButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleViewScores" text="Điểm số" styleClass="nav-button">
                      <graphic>
                         <Label text="📊" styleClass="nav-icon"/>
+                     </graphic>
+                  </Button>
+
+                  <Button fx:id="scholarshipButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleViewScholarship" text="Học bổng" styleClass="nav-button">
+                     <graphic>
+                        <Label text="💵" styleClass="nav-icon"/>
                      </graphic>
                   </Button>
 
@@ -80,7 +86,7 @@
          </children>
       </VBox>
    </left>
-   <right>
+   <!-- <right>
       <VBox spacing="15.0" styleClass="main-container">
          <padding>
             <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
@@ -95,7 +101,7 @@
             <Label fx:id="studentGenderLabel" text="Giới tính: -" />
          </children>
       </VBox>
-   </right>
+   </right> -->
    <center>
       <VBox alignment="CENTER" spacing="20.0" styleClass="main-container">
          <padding>
