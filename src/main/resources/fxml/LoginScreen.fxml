@@ -7,62 +7,81 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 
-<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.LoginController" stylesheets="/styles/styles.css">
-   <center>
-      <VBox alignment="CENTER" spacing="35.0" styleClass="login-container">
-         <padding>
-            <Insets bottom="70.0" left="70.0" right="70.0" top="70.0" />
-         </padding>
-         <children>
-            <ImageView fitHeight="130.0" fitWidth="130.0" pickOnBounds="true" preserveRatio="true">
-               <image>
-                  <Image url="@/images/logo.png" />
-               </image>
-            </ImageView>
-            <Label text="KMA Legend Desktop" styleClass="title-label">
-               <font>
-                  <Font name="System Bold" size="36.0" />
-               </font>
-            </Label>
-            <Label text="Đăng nhập vào hệ thống" styleClass="subtitle-label">
-               <font>
-                  <Font size="16.0" />
-               </font>
-            </Label>
-            <VBox spacing="22.0" styleClass="form-container">
-               <children>
-                  <VBox spacing="10.0">
-                     <children>
-                        <Label text="Tên đăng nhập:" styleClass="form-label" />
-                        <TextField fx:id="usernameField" promptText="Nhập tên đăng nhập" styleClass="modern-text-field" />
-                     </children>
-                  </VBox>
-                  <VBox spacing="10.0">
-                     <children>
-                        <Label text="Mật khẩu:" styleClass="form-label" />
-                        <PasswordField fx:id="passwordField" promptText="Nhập mật khẩu" styleClass="modern-text-field" />
-                     </children>
-                  </VBox>
-                  <Button fx:id="loginButton" mnemonicParsing="false" onAction="#handleLogin" text="Đăng nhập" styleClass="login-button" defaultButton="true" disable="true">
-                     <font>
-                        <Font name="System Bold" size="15.0" />
-                     </font>
-                  </Button>
-                  <VBox spacing="8.0" styleClass="security-notice-container">
-                     <children>
-                        <HBox alignment="CENTER" spacing="8.0">
-                           <children>
-                              <Label text="🔒" styleClass="security-icon" />
-                              <Label text="Bảo mật thông tin" styleClass="security-title" />
-                           </children>
-                        </HBox>
-                        <Label text="Tài khoản và mật khẩu của bạn sẽ KHÔNG được lưu tới server. Tất cả đều được mã hóa bất đối xứng và gửi trực tiếp tới qldt.actvn.edu.vn" styleClass="security-notice" wrapText="true" />
-                     </children>
-                  </VBox>
-               </children>
-            </VBox>
-         </children>
-      </VBox>
-   </center>
-</BorderPane>
+<StackPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.LoginController" stylesheets="/styles/styles.css">
+    
+    <HBox prefHeight="550.0" prefWidth="850.0" styleClass="login-main-container"> 
+    
+        <VBox alignment="CENTER" prefWidth="350.0" styleClass="branding-panel">
+            <children>
+                <ImageView fitHeight="200.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@/images/logo.png" /> 
+                    </image>
+                    <VBox.margin>
+                        <Insets bottom="10.0" />
+                    </VBox.margin>
+                </ImageView>
+                </children>
+            <padding>
+                <Insets bottom="50.0" left="50.0" right="50.0" top="50.0" />
+            </padding>
+        </VBox>
+        
+        <VBox alignment="CENTER_LEFT" HBox.hgrow="ALWAYS" styleClass="login-panel">
+            <padding>
+                <Insets bottom="70.0" left="70.0" right="70.0" top="70.0" /> 
+            </padding>
+            <children>
+                <Label text="Đăng nhập hệ thống" styleClass="title-label">
+                    <font>
+                        <Font name="System Bold" size="28.0" />
+                    </font>
+                    <VBox.margin>
+                        <Insets bottom="2.0" />
+                    </VBox.margin>
+                </Label>
+                
+                <Label text="Student Portal" styleClass="subtitle-label">
+                    <VBox.margin>
+                        <Insets bottom="30.0" />
+                    </VBox.margin>
+                </Label>
 
+                <VBox spacing="25.0" styleClass="form-container" alignment="CENTER_LEFT">
+                    <children>
+                        <VBox spacing="8.0">
+                            <children>
+                                <Label text="Tên đăng nhập / Mã sinh viên" styleClass="form-label" />
+                                <TextField fx:id="usernameField" promptText="Nhập tên đăng nhập của bạn" styleClass="modern-text-field" />
+                            </children>
+                        </VBox>
+                        
+                        <VBox spacing="8.0">
+                            <children>
+                                <Label text="Mật khẩu" styleClass="form-label" />
+                                <PasswordField fx:id="passwordField" promptText="Nhập mật khẩu của bạn" styleClass="modern-text-field" />
+                            </children>
+                        </VBox>
+                        
+                        <Button fx:id="loginButton" mnemonicParsing="false" onAction="#handleLogin" text="Đăng nhập" styleClass="login-button" defaultButton="true" disable="true">
+                            <minHeight>40.0</minHeight>
+                            <VBox.margin>
+                                <Insets top="15.0" />
+                            </VBox.margin>
+                        </Button>
+                        
+                        <Label text="Tài khoản và mật khẩu của bạn sẽ KHÔNG được lưu tới server..." styleClass="security-notice" wrapText="true">
+                            <font>
+                                <Font size="11.0" />
+                            </font>
+                            <VBox.margin>
+                                <Insets top="10.0" />
+                            </VBox.margin>
+                        </Label>
+                        
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </HBox>
+</StackPane>

@@ -27,11 +27,6 @@
     -fx-font-weight: bold;
 }
 
-.subtitle-label {
-    -fx-text-fill: #7f8c8d;
-    -fx-alignment: center;
-}
-
 .form-container {
     -fx-spacing: 22px;
     -fx-pref-width: 420px;
@@ -67,10 +62,10 @@
 }
 
 .login-button {
-    -fx-background-color: linear-gradient(to bottom, #3498db, #2980b9);
+    -fx-background-color: linear-gradient(to right, #3F5EFB, #FC466B);
     -fx-text-fill: white;
-    -fx-pref-width: 420px;
     -fx-pref-height: 50px;
+    -fx-max-width: infinity;
     -fx-background-radius: 8px;
     -fx-cursor: hand;
     -fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.3), 6, 0, 0, 2);
@@ -78,7 +73,7 @@
 }
 
 .login-button:hover {
-    -fx-background-color: linear-gradient(to bottom, #2980b9, #21618c);
+    -fx-background-color: linear-gradient(to right, #833AB4, #FD1D1D, #FCB045);
     -fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.4), 8, 0, 0, 3);
 }
 
@@ -749,3 +744,152 @@
     -fx-pref-height: 100%;
 }
 
+/* Root styles */
+.root {
+    -fx-font-family: "Segoe UI", Arial, sans-serif;
+    -fx-background-color: #1e1e2d; /* DARK BACKGROUND */
+}
+
+/* Login Screen */
+.login-container {
+    -fx-background-color: #232b38; /* DARK CONTAINER BACKGROUND */
+    -fx-padding: 70px;
+    -fx-min-width: 520px;
+    -fx-pref-width: 520px;
+    -fx-max-width: 520px;
+    -fx-min-height: 900px;
+    -fx-pref-height: 900px;
+    -fx-max-height: 900px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 15, 0, 0, 0); /* Darker shadow for depth */
+    -fx-background-radius: 15px;
+    -fx-border-color: #354250; /* Subtle dark border */
+    -fx-border-width: 1px;
+    -fx-border-radius: 15px;
+}
+
+.title-label {
+    -fx-text-fill: rgb(255, 255, 255); /* LIGHT TEXT */
+    -fx-alignment: center;
+    -fx-font-weight: bold;
+}
+
+.subtitle-label {
+    -fx-text-fill: #99a8b8; /* LIGHT GRAY TEXT */
+    -fx-alignment: center;
+}
+
+.form-container {
+    -fx-spacing: 22px;
+    -fx-pref-width: 420px;
+}
+
+.form-label {
+    -fx-text-fill: #99a8b8; /* LIGHT GRAY TEXT */
+    -fx-font-weight: 600;
+    -fx-font-size: 14px;
+}
+
+.modern-text-field {
+    -fx-pref-height: 48px;
+    -fx-background-radius: 8px;
+    -fx-border-color: #4a5460; /* DARKER BORDER */
+    -fx-border-radius: 8px;
+    -fx-padding: 12px 18px;
+    -fx-font-size: 15px;
+    -fx-background-color: #2a3443; /* DARK INPUT BACKGROUND */
+    -fx-text-fill: white; /* LIGHT TEXT */
+}
+
+.modern-text-field:focused {
+    -fx-border-color: #8a2be2; /* Keep accent color but use a darker shade for better dark contrast */
+    -fx-border-width: 2px;
+    -fx-background-color: #2a3443; /* Keep background dark */
+    -fx-effect: dropshadow(three-pass-box, rgba(138,43,226,0.3), 5, 0, 0, 0);
+}
+
+.modern-text-field:hover {
+    -fx-border-color: #4a5460;
+    -fx-background-color: #354250; /* Slightly lighter hover for input */
+}
+
+/* Security Notice Container changes from green to a subtle yellow/amber */
+.security-notice-container {
+    -fx-background-color: #38311a; /* DARKER BACKGROUND */
+    -fx-background-radius: 10px;
+    -fx-padding: 18px;
+    -fx-border-color: #b38e3e; /* GOLD ACCENT BORDER */
+    -fx-border-width: 1px;
+    -fx-border-radius: 10px;
+    -fx-spacing: 10px;
+    -fx-pref-width: 420px;
+}
+
+.security-icon {
+    -fx-font-size: 18px;
+}
+
+.security-title {
+    -fx-text-fill: #fcd971; /* LIGHT GOLD TEXT */
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.security-notice {
+    -fx-text-fill: #b38e3e; /* DARKER GOLD/AMBER TEXT */
+    -fx-font-size: 13px;
+    -fx-line-spacing: 3px;
+    -fx-alignment: center-left;
+}
+
+/* Header */
+.header-container {
+    -fx-background-color: #2c343e; /* DARK HEADER */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 0);
+}
+
+.welcome-label {
+    -fx-text-fill: white;
+}
+
+.page-title {
+    -fx-text-fill: white;
+}
+
+/* Status Label */
+.status-label {
+    -fx-text-fill: #99a8b8;
+    -fx-font-size: 14px;
+}
+
+/* Table Styles */
+.data-table {
+    -fx-background-color: #2c343e; /* DARK TABLE BACKGROUND */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 0);
+}
+
+.data-table .column-header {
+    -fx-background-color: #34495e;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 10px;
+}
+
+.data-table .table-row-cell {
+    -fx-background-color: #2c343e;
+}
+
+.data-table .table-row-cell:odd {
+    -fx-background-color: #354250; /* Slightly darker stripe */
+}
+
+.data-table .table-row-cell:selected {
+    -fx-background-color: #6a5acd; /* ACCENT COLOR */
+    -fx-text-background-color: white;
+}
+
+.data-table .table-cell {
+    -fx-padding: 10px;
+    -fx-border-color: transparent;
+    -fx-text-fill: #e0e0e0; /* LIGHT TEXT */
+}
+/* ... rest of the dark theme adjustments ... */

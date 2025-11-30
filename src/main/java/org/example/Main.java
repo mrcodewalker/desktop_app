@@ -13,7 +13,7 @@ public class Main extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/LoginScreen.fxml"));
         Parent root = loader.load();
         
-        Scene scene = new Scene(root, 700, 1000);
+        Scene scene = new Scene(root, 1000, 600);
         
         primaryStage.setTitle("Đăng nhập - KMA Legend Desktop");
         primaryStage.setScene(scene);
