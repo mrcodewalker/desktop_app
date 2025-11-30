@@ -42,6 +42,8 @@ public class LoginController {
         encryptionService = EncryptionService.getInstance();
         
         // Lấy public key khi khởi tạo
+        usernameField.setText("ct070216");
+        passwordField.setText("maimia2505");
         loadPublicKey();
     }
     

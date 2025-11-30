@@ -4,35 +4,84 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.controller.MainScreenController" stylesheets="/styles/styles.css">
-   <top>
-      <VBox spacing="10.0" styleClass="header-container">
+   <left>
+      <VBox spacing="10.0" styleClass="primary-sidebar">
          <padding>
             <Insets bottom="20.0" left="30.0" right="30.0" top="30.0" />
          </padding>
          <children>
-            <Label fx:id="welcomeLabel" text="Chào mừng đến với KMA Legend Desktop" styleClass="welcome-label">
-               <font>
-                  <Font name="System Bold" size="24.0" />
-               </font>
-            </Label>
-            <HBox alignment="CENTER" spacing="15.0">
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
                <children>
-                  <Region HBox.hgrow="ALWAYS" />
-                  <Button fx:id="scheduleButton" mnemonicParsing="false" onAction="#handleViewSchedule" text="Xem lịch học" styleClass="menu-button" prefWidth="180.0" />
-                  <Button fx:id="virtualScheduleButton" mnemonicParsing="false" onAction="#handleVirtualSchedule" text="Xếp lịch học ảo" styleClass="menu-button" prefWidth="180.0" />
-                  <Button fx:id="scoresButton" mnemonicParsing="false" onAction="#handleViewScores" text="Xem điểm thi" styleClass="menu-button" prefWidth="180.0" />
-                  <Button fx:id="scholarshipButton" mnemonicParsing="false" onAction="#handleViewScholarship" text="Danh sách học bổng dự kiến" styleClass="menu-button" prefWidth="250.0" />
-                  <Region HBox.hgrow="ALWAYS" />
-                  <Button fx:id="logoutButton" mnemonicParsing="false" onAction="#handleLogout" text="Đăng xuất" styleClass="logout-button" />
+                  <ImageView fitHeight="40.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@/images/woman.png" />
+                     </image>
+                  </ImageView>
+                  <VBox spacing="4.0">
+                     <Label fx:id="studentNameLabel" text="Họ tên: -" styleClass="title-label">
+                        <font>
+                           <Font name="System Bold" size="16.0" />
+                        </font>
+                     </Label>
+                     <Label fx:id="studentCodeLabel" text="Mã SV: -" styleClass="subtitle-label" />
+                  </VBox>
+                  
                </children>
             </HBox>
+            <VBox alignment="TOP_CENTER" spacing="8.0" styleClass="sidebar-container">
+               <padding>
+                  <Insets top="20" right="15" bottom="20" left="15"/>
+               </padding>
+
+               <children>
+                  <Button fx:id="homeButton" maxWidth="Infinity" mnemonicParsing="false" text="Trang chủ" styleClass="nav-button, active">
+                     <graphic>
+                        <Label text="🏠" styleClass="nav-icon"/>
+                     </graphic>
+                  </Button>
+
+                  <Button fx:id="scheduleButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleViewSchedule" text="Lịch học" styleClass="nav-button">
+                     <graphic>
+                        <Label text="📅" styleClass="nav-icon"/>
+                     </graphic>
+                  </Button>
+
+                  <Button fx:id="examButton" maxWidth="Infinity" mnemonicParsing="false" text="Lịch Thi" styleClass="nav-button">
+                     <graphic>
+                        <Label text="📝" styleClass="nav-icon"/>
+                     </graphic>
+                  </Button>
+
+                  <Button fx:id="scoresButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleViewScores" text="Điểm số" styleClass="nav-button">
+                     <graphic>
+                        <Label text="📊" styleClass="nav-icon"/>
+                     </graphic>
+                  </Button>
+
+                  <Button fx:id="profileButton" maxWidth="Infinity" mnemonicParsing="false" text="Thông tin cá nhân" styleClass="nav-button">
+                     <graphic>
+                        <Label text="👤" styleClass="nav-icon"/>
+                     </graphic>
+                  </Button>
+                  
+                  <Region VBox.vgrow="ALWAYS" />
+
+                  <Button fx:id="logoutButton" maxWidth="Infinity" mnemonicParsing="false" onAction="#handleLogout" text="Đăng xuất" styleClass="logout-button">
+                     <graphic>
+                        <Label text="🚪" styleClass="logout-icon"/>
+                     </graphic>
+                  </Button>
+               </children>
+            </VBox>
          </children>
       </VBox>
-   </top>
-   <left>
-      <VBox spacing="15.0" styleClass="student-info-panel">
+   </left>
+   <right>
+      <VBox spacing="15.0" styleClass="main-container">
          <padding>
             <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
          </padding>
@@ -42,15 +91,13 @@
                   <Font name="System Bold" size="16.0" />
                </font>
             </Label>
-            <Label fx:id="studentNameLabel" text="Họ tên: -" />
-            <Label fx:id="studentCodeLabel" text="Mã SV: -" />
             <Label fx:id="studentBirthdayLabel" text="Ngày sinh: -" />
             <Label fx:id="studentGenderLabel" text="Giới tính: -" />
          </children>
       </VBox>
-   </left>
+   </right>
    <center>
-      <VBox alignment="CENTER" spacing="20.0">
+      <VBox alignment="CENTER" spacing="20.0" styleClass="main-container">
          <padding>
             <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
          </padding>
@@ -64,3 +111,4 @@
       </VBox>
    </center>
 </BorderPane>
+

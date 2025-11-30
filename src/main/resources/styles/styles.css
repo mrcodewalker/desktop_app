@@ -1,7 +1,7 @@
 /* Root styles */
 .root {
     -fx-font-family: "Segoe UI", Arial, sans-serif;
-    -fx-background-color: #f5f5f5;
+    -fx-background-color: #101622;
 }
 
 /* Login Screen */
@@ -78,7 +78,7 @@
 }
 
 .login-button:pressed {
-    -fx-background-color: linear-gradient(to bottom, #21618c, #1b4f72);
+    -fx-background-color: rgba(255,105,135,0.9);
     -fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.2), 3, 0, 0, 1);
 }
 
@@ -114,12 +114,6 @@
     -fx-font-size: 13px;
     -fx-line-spacing: 3px;
     -fx-alignment: center-left;
-}
-
-/* Header */
-.header-container {
-    -fx-background-color: white;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 0);
 }
 
 .welcome-label {
@@ -751,20 +745,20 @@
 }
 
 /* Login Screen */
-.login-container {
-    -fx-background-color: #232b38; /* DARK CONTAINER BACKGROUND */
-    -fx-padding: 70px;
+.main-container {
+    -fx-background-color: #101622; /* DARK CONTAINER BACKGROUND */
+    /* -fx-padding: 70px;
     -fx-min-width: 520px;
     -fx-pref-width: 520px;
     -fx-max-width: 520px;
     -fx-min-height: 900px;
     -fx-pref-height: 900px;
-    -fx-max-height: 900px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 15, 0, 0, 0); /* Darker shadow for depth */
-    -fx-background-radius: 15px;
-    -fx-border-color: #354250; /* Subtle dark border */
-    -fx-border-width: 1px;
-    -fx-border-radius: 15px;
+    -fx-max-height: 900px; */
+    /* -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 15, 0, 0, 0); /* Darker shadow for depth */
+    /* -fx-background-radius: 15px;
+    -fx-border-color: #354250;  */
+    /* -fx-border-width: 1px;
+    -fx-border-radius: 15px; */
 }
 
 .title-label {
@@ -847,6 +841,10 @@
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 0);
 }
 
+.primary-sidebar {
+    -fx-background-color: #0f172a; /* DARK SIDEBAR */
+}
+
 .welcome-label {
     -fx-text-fill: white;
 }
@@ -893,3 +891,65 @@
     -fx-text-fill: #e0e0e0; /* LIGHT TEXT */
 }
 /* ... rest of the dark theme adjustments ... */
+
+/* Container Background (Dark Navy) */
+.sidebar-container {
+    -fx-background-color: #0f172a; /* Dark Navy/Black background */
+}
+
+/* --- Base Navigation Button Style --- */
+.nav-button {
+    -fx-background-color: transparent; /* Transparent by default */
+    -fx-text-fill: #e2e8f0; /* Light gray text */
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT; /* Align content to the left */
+    -fx-padding: 12 20; /* Vertical 12px, Horizontal 20px */
+    -fx-background-radius: 10px; /* Rounded corners */
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 15px; /* Space between Icon and Text */
+}
+
+/* Icon Style */
+.nav-icon {
+    -fx-text-fill: #94a3b8; /* Slightly dimmer icon color */
+    -fx-font-size: 16px;
+}
+
+/* Hover Effect */
+.nav-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.05); /* Subtle light overlay */
+    -fx-text-fill: white;
+}
+
+/* --- ACTIVE STATE (The Blue Button) --- */
+.nav-button.active {
+    -fx-background-color: #172554; /* Deep Blue Background */
+    -fx-text-fill: #3b82f6; /* Bright Blue Text */
+}
+
+.nav-button.active .nav-icon {
+    -fx-text-fill: #3b82f6; /* Icon turns bright blue too */
+}
+
+/* Optional: Logout specific style if you want it red on hover */
+.nav-button:hover #logoutButton {
+    -fx-text-fill: #ff6b6b;
+}
+
+.logout-button {
+    -fx-background-color: #d81111; /* Transparent by default */
+    -fx-text-fill: #e2e8f0; /* Light gray text */
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT; /* Align content to the left */
+    -fx-padding: 12 20; /* Vertical 12px, Horizontal 20px */
+    -fx-background-radius: 10px; /* Rounded corners */
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 15px; /* Space between Icon and Text */
+}
+
+.logout-icon {
+    -fx-text-fill: #ffffff; /* Slightly dimmer icon color */
+    -fx-font-size: 16px;
+}
