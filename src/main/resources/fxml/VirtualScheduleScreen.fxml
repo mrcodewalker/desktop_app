@@ -14,14 +14,13 @@
          <children>
             <HBox alignment="CENTER_LEFT" spacing="15.0">
                <children>
-                  <Button fx:id="backButton" mnemonicParsing="false" onAction="#handleBack" text="← Quay lại" styleClass="back-button" />
                   <Label text="Xếp lịch học ảo" styleClass="page-title">
                      <font>
                         <Font name="System Bold" size="22.0" />
                      </font>
                   </Label>
                   <Region HBox.hgrow="ALWAYS" />
-                  <Button fx:id="viewCalendarButton" mnemonicParsing="false" onAction="#handleViewCalendar" text="📅 Xem lịch" styleClass="view-toggle-button" />
+                  <Button fx:id="toggleInfoButton" mnemonicParsing="false" onAction="#handleToggleInfo" text="📊 Thông tin đăng ký" styleClass="menu-button" />
                   <Button fx:id="exportTxtButton" mnemonicParsing="false" onAction="#handleExportTxt" text="📄 Xuất TXT" styleClass="menu-button" />
                   <Button fx:id="importTxtButton" mnemonicParsing="false" onAction="#handleImportTxt" text="📥 Nhập TXT" styleClass="menu-button" />
                   <Button fx:id="clearAllButton" mnemonicParsing="false" onAction="#handleClearAll" text="Xóa tất cả" styleClass="menu-button" />
@@ -30,9 +29,9 @@
             <Label fx:id="statusLabel" text="Đang tải..." styleClass="status-label" />
             <HBox spacing="15.0" alignment="CENTER_LEFT">
                <children>
-                  <Label text="Chọn khóa:" style="-fx-font-weight: 500; -fx-text-fill: #2c3e50;" />
+                  <Label text="Chọn khóa:" style="-fx-font-weight: 500; -fx-text-fill: #ffffff;" />
                   <ComboBox fx:id="courseComboBox" prefWidth="200.0" promptText="Tất cả khóa" styleClass="modern-combo" />
-                  <Label text="Chọn môn:" style="-fx-font-weight: 500; -fx-text-fill: #2c3e50;" />
+                  <Label text="Chọn môn:" style="-fx-font-weight: 500; -fx-text-fill: #ffffff;" />
                   <ComboBox fx:id="subjectComboBox" prefWidth="300.0" promptText="Tất cả môn" styleClass="modern-combo" />
                </children>
             </HBox>
@@ -40,40 +39,79 @@
       </VBox>
    </top>
    <center>
-      <SplitPane dividerPositions="0.32,0.66" orientation="HORIZONTAL">
-         <items>
-            <VBox spacing="12.0" styleClass="section-container">
-               <padding>
-                  <Insets bottom="20.0" left="20.0" right="15.0" top="20.0" />
-               </padding>
-               <children>
-                  <Label text="📚 Danh sách môn học" styleClass="section-title">
-                     <font>
-                        <Font name="System Bold" size="15.0" />
-                     </font>
-                  </Label>
-                  <ScrollPane fx:id="coursesScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="modern-scroll">
-                     <content>
-                        <VBox fx:id="coursesContainer" spacing="12.0">
-                           <padding>
-                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                           </padding>
+      <StackPane>
+         <children>
+            <SplitPane fx:id="mainSplitPane" dividerPositions="0.25" orientation="HORIZONTAL">
+               <items>
+                  <VBox spacing="12.0" style="-fx-background-color: #1a1a1a; -fx-border-color: #333333; -fx-border-width: 0 1 0 0;">
+                     <padding>
+                        <Insets bottom="20.0" left="20.0" right="15.0" top="20.0" />
+                     </padding>
+                     <children>
+                        <Label text="📚 Chọn môn học" style="-fx-text-fill: #ffffff; -fx-padding: 0 0 8 0;">
+                           <font>
+                              <Font name="System Bold" size="15.0" />
+                           </font>
+                        </Label>
+                        <ScrollPane fx:id="coursesScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="modern-scroll">
+                           <content>
+                              <VBox fx:id="coursesContainer" spacing="12.0" style="-fx-background-color: #1a1a1a;">
+                                 <padding>
+                                    <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                                 </padding>
+                              </VBox>
+                           </content>
+                        </ScrollPane>
+                     </children>
+                  </VBox>
+                  <VBox spacing="10.0" VBox.vgrow="ALWAYS">
+                     <children>
+                        <VBox fx:id="fullCalendarView" spacing="10.0" VBox.vgrow="ALWAYS" alignment="CENTER" style="-fx-background-color: #0d0d0d;">
+                           <children>
+                              <VBox fx:id="calendarNavigationBox" spacing="10.0" alignment="CENTER" style="-fx-background-color: #1a1a1a; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 0);">
+                                 <padding>
+                                    <Insets bottom="10.0" left="20.0" right="20.0" top="20.0" />
+                                 </padding>
+                                 <children>
+                                    <HBox alignment="CENTER" spacing="20.0">
+                                       <children>
+                                          <Button fx:id="prevMonthButton" mnemonicParsing="false" onAction="#handlePrevMonth" text="◀" styleClass="nav-month-button" />
+                                          <Label fx:id="currentMonthLabel" text="Tháng 01/2024" style="-fx-text-fill: #00d4ff; -fx-padding: 10px 30px; -fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-background-radius: 8; -fx-min-width: 250px;">
+                                             <font>
+                                                <Font name="System Bold" size="20.0" />
+                                             </font>
+                                          </Label>
+                                          <Button fx:id="nextMonthButton" mnemonicParsing="false" onAction="#handleNextMonth" text="▶" styleClass="nav-month-button" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </VBox>
+                              <ScrollPane fx:id="fullCalendarScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="modern-scroll">
+                                 <content>
+                                    <VBox fx:id="fullCalendarContainer" alignment="CENTER" style="-fx-background-color: #0d0d0d;">
+                                       <padding>
+                                          <Insets bottom="20.0" left="20.0" right="20.0" top="10.0" />
+                                       </padding>
+                                    </VBox>
+                                 </content>
+                              </ScrollPane>
+                           </children>
                         </VBox>
-                     </content>
-                  </ScrollPane>
-               </children>
-            </VBox>
-            <VBox spacing="12.0" styleClass="section-container">
+                     </children>
+                  </VBox>
+               </items>
+            </SplitPane>
+            <VBox fx:id="infoPanel" spacing="12.0" style="-fx-background-color: #1a1a1a; -fx-border-color: #333333; -fx-border-width: 0 1 0 0;" visible="false" managed="false" alignment="TOP_CENTER">
                <padding>
                   <Insets bottom="20.0" left="15.0" right="15.0" top="20.0" />
                </padding>
                <children>
-                  <Label text="📊 Bảng thông tin đăng ký" styleClass="section-title">
+                  <Label text="📊 Thông tin đăng ký" style="-fx-text-fill: #ffffff; -fx-padding: 0 0 8 0;">
                      <font>
                         <Font name="System Bold" size="15.0" />
                      </font>
                   </Label>
-                  <TableView fx:id="registrationTable" styleClass="data-table modern-table" VBox.vgrow="ALWAYS">
+                  <TableView fx:id="registrationTable" styleClass="dark-table" prefHeight="200.0">
                      <columns>
                         <TableColumn fx:id="courseColumn" text="Khóa" prefWidth="90.0" />
                         <TableColumn fx:id="subjectCountColumn" text="Đã đăng ký" prefWidth="120.0" />
@@ -81,12 +119,12 @@
                         <TableColumn fx:id="percentageColumn" text="Tỷ lệ" prefWidth="100.0" />
                      </columns>
                   </TableView>
-                  <Label text="✅ Danh sách lớp đã chọn" styleClass="section-title">
+                  <Label text="✅ Danh sách lớp đã chọn" style="-fx-text-fill: #ffffff; -fx-padding: 0 0 8 0;">
                      <font>
                         <Font name="System Bold" size="15.0" />
                      </font>
                   </Label>
-                  <TableView fx:id="selectedCoursesTable" styleClass="data-table modern-table" prefHeight="250.0">
+                  <TableView fx:id="selectedCoursesTable" styleClass="dark-table" prefHeight="250.0">
                      <columns>
                         <TableColumn fx:id="selectedCourseColumn" text="Khóa" prefWidth="90.0" />
                         <TableColumn fx:id="selectedSubjectColumn" text="Tên môn học" prefWidth="280.0" />
@@ -95,29 +133,8 @@
                   </TableView>
                </children>
             </VBox>
-            <VBox spacing="12.0" styleClass="section-container">
-               <padding>
-                  <Insets bottom="20.0" left="15.0" right="20.0" top="20.0" />
-               </padding>
-               <children>
-                  <Label text="📅 Lịch học đã chọn" styleClass="section-title">
-                     <font>
-                        <Font name="System Bold" size="15.0" />
-                     </font>
-                  </Label>
-                  <ScrollPane fx:id="selectedScheduleScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="modern-scroll">
-                     <content>
-                        <VBox fx:id="selectedScheduleContainer" spacing="12.0">
-                           <padding>
-                              <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                           </padding>
-                        </VBox>
-                     </content>
-                  </ScrollPane>
-               </children>
-            </VBox>
-         </items>
-      </SplitPane>
+         </children>
+      </StackPane>
    </center>
 </BorderPane>
 

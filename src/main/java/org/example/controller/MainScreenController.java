@@ -137,7 +137,7 @@ public class MainScreenController {
     private void handleViewSchedule() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ScheduleScreen.fxml"));
-            Parent root = loader.load();
+            Parent centerContent = loader.load();
 
             ScheduleController controller = loader.getController();
             controller.setAuthToken(authToken);
@@ -151,12 +151,7 @@ public class MainScreenController {
                 controller.loadSchedule();
             }
 
-            Stage stage = (Stage) scheduleButton.getScene().getWindow();
-            stage.setScene(new Scene(root, 1400, 1000));
-            stage.setTitle("Lịch học");
-            stage.setMinWidth(1200);
-            stage.setMinHeight(800);
-
+            mainBorderPane.setCenter(centerContent);
             setActiveButton(scheduleButton);
 
         } catch (Exception e) {

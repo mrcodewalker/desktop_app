@@ -576,10 +576,22 @@
 }
 
 .scores-table .table-row-cell {
-    /* -fx-background-color: #1d1d1d; */
-    
+    -fx-background-color: #1d1d1d;
     -fx-border-color: #1f2937; 
     -fx-border-width: 0 0 1px 0; 
+}
+
+.scores-table .table-row-cell:odd {
+    -fx-background-color: #1a1a1a;
+}
+
+.scores-table .table-row-cell:hover {
+    -fx-background-color: #2a2a2a;
+}
+
+.scores-table .table-row-cell:selected {
+    -fx-background-color: #3a3a3a;
+    -fx-text-background-color: white;
 }
 
 .scores-table .table-cell {
@@ -587,6 +599,7 @@
     -fx-alignment: center-left; 
     -fx-text-fill: white; 
     -fx-border-color: transparent;
+    -fx-background-color: transparent;
 }
 
 .scores-table .column-header {
@@ -603,6 +616,15 @@
 
 .scores-table .virtual-flow {
     -fx-background-radius: 0 0 12px 12px;
+    -fx-background-color: #1d1d1d;
+}
+
+.scores-table .virtual-flow .clipped-container {
+    -fx-background-color: #1d1d1d;
+}
+
+.scores-table .virtual-flow .sheet {
+    -fx-background-color: #1d1d1d;
 }
 /* .scores-table .column-header {
     -fx-background-color: #111725;
@@ -1063,4 +1085,196 @@
 .stat-subtitle {
     -fx-text-fill: #64748b; /* Darker gray for less important info */
     -fx-font-size: 12px;
+}
+
+/* Dark Theme Checkbox */
+.check-box {
+    -fx-text-fill: #ffffff;
+}
+
+.check-box .box {
+    -fx-background-color: #2a2a2a;
+    -fx-border-color: #00d4ff;
+    -fx-border-radius: 3;
+    -fx-border-width: 1.5;
+}
+
+.check-box .box:hover {
+    -fx-border-color: #00ffff;
+    -fx-border-width: 2;
+}
+
+.check-box:selected .box {
+    -fx-background-color: #00d4ff;
+    -fx-border-color: #00ffff;
+}
+
+.check-box:selected .mark {
+    -fx-background-color: #ffffff;
+}
+
+/* Dark Table for Virtual Schedule Info Panel - Must be after .data-table to override */
+.dark-table {
+    -fx-background-color: #1a1a1a;
+    -fx-control-inner-background: #1a1a1a;
+}
+
+.dark-table .column-header-background {
+    -fx-background-color: #2a2a2a;
+}
+
+.dark-table .column-header-background .filler {
+    -fx-background-color: #2a2a2a;
+}
+
+.dark-table .column-header {
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-padding: 10px;
+    -fx-border-color: #333333;
+    -fx-border-width: 0 0 1 0;
+}
+
+.dark-table .column-header .label {
+    -fx-text-fill: #ffffff;
+    -fx-background-color: transparent;
+}
+
+/* Override .data-table styles for .dark-table */
+.dark-table.table-view .table-row-cell {
+    -fx-background-color: #1a1a1a;
+    -fx-text-background-color: #ffffff;
+    -fx-table-cell-border-color: transparent;
+}
+
+.dark-table.table-view .table-row-cell:filled {
+    -fx-background-color: #1a1a1a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table.table-view .table-row-cell:filled:odd {
+    -fx-background-color: #1a1a1a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table.table-view .table-row-cell:odd {
+    -fx-background-color: #1a1a1a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table.table-view .table-row-cell:hover {
+    -fx-background-color: #2a2a2a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table.table-view .table-row-cell:selected {
+    -fx-background-color: #3a3a3a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table.table-view .table-row-cell:filled:selected {
+    -fx-background-color: #3a3a3a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table.table-view .table-row-cell:empty {
+    -fx-background-color: #1a1a1a;
+}
+
+.dark-table.table-view .table-cell {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 10px;
+    -fx-border-color: transparent;
+}
+
+.dark-table.table-view .table-cell:filled {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-table.table-view .table-cell:selected {
+    -fx-background-color: #3a3a3a;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-table.table-view .table-cell:filled:selected {
+    -fx-background-color: #3a3a3a;
+    -fx-text-fill: #ffffff;
+}
+
+/* Also support without .table-view for compatibility */
+.dark-table .table-row-cell {
+    -fx-background-color: #1a1a1a;
+    -fx-text-background-color: #ffffff;
+    -fx-table-cell-border-color: transparent;
+}
+
+.dark-table .table-row-cell:filled {
+    -fx-background-color: #1a1a1a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table .table-row-cell:filled:odd {
+    -fx-background-color: #1a1a1a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table .table-row-cell:odd {
+    -fx-background-color: #1a1a1a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table .table-row-cell:hover {
+    -fx-background-color: #2a2a2a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table .table-row-cell:selected {
+    -fx-background-color: #3a3a3a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table .table-row-cell:filled:selected {
+    -fx-background-color: #3a3a3a;
+    -fx-text-background-color: #ffffff;
+}
+
+.dark-table .table-row-cell:empty {
+    -fx-background-color: #1a1a1a;
+}
+
+.dark-table .table-cell {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+    -fx-padding: 10px;
+    -fx-border-color: transparent;
+}
+
+.dark-table .table-cell:filled {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-table .table-cell:selected {
+    -fx-background-color: #3a3a3a;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-table .table-cell:filled:selected {
+    -fx-background-color: #3a3a3a;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-table .virtual-flow {
+    -fx-background-color: #1a1a1a;
+}
+
+.dark-table .virtual-flow .clipped-container {
+    -fx-background-color: #1a1a1a;
+}
+
+.dark-table .virtual-flow .sheet {
+    -fx-background-color: #1a1a1a;
 }

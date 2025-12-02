@@ -11,7 +11,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
 import org.example.model.ScholarshipItem;
 import org.example.service.ApiService;
 import org.example.service.EncryptionService;
@@ -49,9 +48,6 @@ public class ScholarshipController {
     
     @FXML
     private Button filterButton;
-    
-    @FXML
-    private Button backButton;
     
     @FXML
     private Label statusLabel;
@@ -215,7 +211,7 @@ public class ScholarshipController {
             filterButton.setOnAction(e -> handleFilter());
         }
         
-        // Setup row factory để highlight top 3 nhẹ nhàng
+        // Setup row factory để highlight top 3 với màu đen
         scholarshipTable.setRowFactory(tv -> new TableRow<ScholarshipItem>() {
             @Override
             protected void updateItem(ScholarshipItem item, boolean empty) {
@@ -225,16 +221,16 @@ public class ScholarshipController {
                 } else {
                     int index = scholarshipTable.getItems().indexOf(item);
                     if (index == 0) {
-                        // Top 1 - Vàng nhẹ
-                        setStyle("-fx-background-color: #FFF9E6; " +
+                        // Top 1 - Đen với highlight nhẹ
+                        setStyle("-fx-background-color: #2a2a2a; " +
                                 "-fx-background-insets: 0; -fx-background-radius: 0;");
                     } else if (index == 1) {
-                        // Top 2 - Bạc nhẹ
-                        setStyle("-fx-background-color: #F5F5F5; " +
+                        // Top 2 - Đen
+                        setStyle("-fx-background-color: #252525; " +
                                 "-fx-background-insets: 0; -fx-background-radius: 0;");
                     } else if (index == 2) {
-                        // Top 3 - Đồng nhẹ
-                        setStyle("-fx-background-color: #FFF4E6; " +
+                        // Top 3 - Đen
+                        setStyle("-fx-background-color: #222222; " +
                                 "-fx-background-insets: 0; -fx-background-radius: 0;");
                     } else {
                         setStyle("");
@@ -379,21 +375,6 @@ public class ScholarshipController {
             return obj.get(key).getAsDouble();
         }
         return 0.0;
-    }
-    
-    @FXML
-    private void handleBack() {
-        try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/MainScreen.fxml"));
-            javafx.scene.Parent root = loader.load();
-            
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(new javafx.scene.Scene(root, 1200, 800));
-            stage.setTitle("KMA Legend Desktop - Trang chủ");
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
     
     private void showAlert(Alert.AlertType type, String title, String message) {

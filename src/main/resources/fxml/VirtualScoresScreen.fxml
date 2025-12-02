@@ -24,6 +24,7 @@
                   <Button fx:id="restoreButton" mnemonicParsing="false" text="🔄 Khôi phục từ điểm thi" styleClass="menu-button" />
                   <Button fx:id="selectAllButton" mnemonicParsing="false" text="☑ Chọn tất cả" styleClass="menu-button" />
                   <Button fx:id="conversionTableButton" mnemonicParsing="false" text="📊 Bảng điểm quy đổi" styleClass="menu-button" />
+                  <Button fx:id="cpaCalculatorButton" mnemonicParsing="false" text="🎯 CPA dự kiến" styleClass="menu-button" />
                   <Button fx:id="saveButton" mnemonicParsing="false" text="💾 Lưu lên hệ thống" styleClass="menu-button" />
                   <Region HBox.hgrow="ALWAYS" />
                   <HBox alignment="CENTER_RIGHT" spacing="15.0" styleClass="gpa-cpa-container">

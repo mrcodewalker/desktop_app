@@ -14,7 +14,6 @@
          <children>
             <HBox alignment="CENTER_LEFT" spacing="15.0">
                <children>
-                  <Button fx:id="backButton" mnemonicParsing="false" onAction="#handleBack" text="← Quay lại" styleClass="back-button" />
                   <Label text="Lịch học" styleClass="page-title">
                      <font>
                         <Font name="System Bold" size="22.0" />
@@ -25,7 +24,7 @@
                </children>
             </HBox>
             <Label fx:id="statusLabel" text="Đang tải..." styleClass="status-label" />
-            <HBox spacing="15.0" alignment="CENTER_LEFT">
+            <HBox spacing="15.0" alignment="CENTER_LEFT" visible="false" managed="false">
                <children>
                   <Label text="Lọc theo tháng:" style="-fx-font-weight: 500; -fx-text-fill: #2c3e50;" />
                   <ComboBox fx:id="monthFilterComboBox" onAction="#handleMonthFilter" prefWidth="150.0" promptText="Tất cả tháng" styleClass="modern-combo" />
@@ -42,7 +41,7 @@
    <center>
       <StackPane>
          <children>
-            <SplitPane fx:id="splitPane" dividerPositions="0.4" orientation="HORIZONTAL">
+            <SplitPane fx:id="splitPane" dividerPositions="0.4" orientation="HORIZONTAL" visible="false" managed="false">
                <items>
                   <VBox spacing="10.0">
                      <padding>
@@ -91,9 +90,9 @@
                   </ScrollPane>
                </items>
             </SplitPane>
-            <VBox fx:id="fullCalendarView" visible="false" managed="false" VBox.vgrow="ALWAYS" alignment="CENTER">
+            <VBox fx:id="fullCalendarView" VBox.vgrow="ALWAYS" alignment="CENTER" style="-fx-background-color: #0d0d0d;">
                <children>
-                  <VBox fx:id="calendarNavigationBox" spacing="10.0" alignment="CENTER" styleClass="calendar-navigation">
+                  <VBox fx:id="calendarNavigationBox" spacing="10.0" alignment="CENTER" style="-fx-background-color: #1a1a1a; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 5, 0, 0, 0);">
                      <padding>
                         <Insets bottom="10.0" left="20.0" right="20.0" top="20.0" />
                      </padding>
@@ -101,7 +100,7 @@
                         <HBox alignment="CENTER" spacing="20.0">
                            <children>
                               <Button fx:id="prevMonthButton" mnemonicParsing="false" onAction="#handlePrevMonth" text="◀" styleClass="nav-month-button" />
-                              <Label fx:id="currentMonthLabel" text="Tháng 01/2024" styleClass="current-month-label">
+                              <Label fx:id="currentMonthLabel" text="Tháng 01/2024" style="-fx-text-fill: #00d4ff; -fx-padding: 10px 30px; -fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-background-radius: 8; -fx-min-width: 250px;">
                                  <font>
                                     <Font name="System Bold" size="20.0" />
                                  </font>
@@ -111,7 +110,7 @@
                         </HBox>
                      </children>
                   </VBox>
-                  <VBox fx:id="fullCalendarContainer" alignment="CENTER" styleClass="calendar-container">
+                  <VBox fx:id="fullCalendarContainer" alignment="CENTER" style="-fx-background-color: #0d0d0d;">
                      <padding>
                         <Insets bottom="20.0" left="20.0" right="20.0" top="10.0" />
                      </padding>

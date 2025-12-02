@@ -58,8 +58,6 @@ public class VirtualScheduleController {
     @FXML
     private Label statusLabel;
     
-    @FXML
-    private Button backButton;
     
     @FXML
     private Button clearAllButton;
@@ -71,7 +69,34 @@ public class VirtualScheduleController {
     private Button importTxtButton;
     
     @FXML
-    private Button viewCalendarButton;
+    private Button toggleInfoButton;
+    
+    @FXML
+    private SplitPane mainSplitPane;
+    
+    @FXML
+    private VBox fullCalendarView;
+    
+    @FXML
+    private VBox calendarNavigationBox;
+    
+    @FXML
+    private Button prevMonthButton;
+    
+    @FXML
+    private Button nextMonthButton;
+    
+    @FXML
+    private Label currentMonthLabel;
+    
+    @FXML
+    private ScrollPane fullCalendarScrollPane;
+    
+    @FXML
+    private VBox fullCalendarContainer;
+    
+    @FXML
+    private VBox infoPanel;
     
     @FXML
     private TableView<CourseStats> registrationTable;
@@ -109,6 +134,7 @@ public class VirtualScheduleController {
     private Map<String, List<VirtualCourse>> coursesByCourse = new HashMap<>(); // Group by course (AT22, AT21...)
     private Map<String, List<VirtualCourse>> coursesByDisplayName = new HashMap<>(); // Group by displayCourseName (để filter theo môn)
     private Map<VirtualCourse, CheckBox> courseCheckBoxMap = new HashMap<>();
+    private YearMonth currentDisplayMonth;
     
     @FXML
     public void initialize() {
@@ -125,10 +151,133 @@ public class VirtualScheduleController {
         totalSubjectsColumn.setCellValueFactory(new PropertyValueFactory<>("totalCount"));
         percentageColumn.setCellValueFactory(new PropertyValueFactory<>("percentage"));
         
+        // Setup cell factories for registration table with dark theme
+        setupStringTableColumnCellFactory(courseColumn);
+        setupIntegerTableColumnCellFactory(subjectCountColumn);
+        setupIntegerTableColumnCellFactory(totalSubjectsColumn);
+        setupStringTableColumnCellFactory(percentageColumn);
+        
+        // Apply dark theme styles directly to registration table
+        if (registrationTable != null) {
+            registrationTable.setStyle("-fx-background-color: #1a1a1a; -fx-control-inner-background: #1a1a1a;");
+            // Set row factory to ensure dark background
+            registrationTable.setRowFactory(tv -> {
+                TableRow<CourseStats> row = new TableRow<>();
+                row.setStyle("-fx-background-color: #1a1a1a; -fx-text-background-color: #ffffff;");
+                row.itemProperty().addListener((obs, oldItem, newItem) -> {
+                    if (newItem != null) {
+                        row.setStyle("-fx-background-color: #1a1a1a; -fx-text-background-color: #ffffff;");
+                    } else {
+                        row.setStyle("-fx-background-color: #1a1a1a;");
+                    }
+                });
+                return row;
+            });
+            // Style column headers
+            Platform.runLater(() -> {
+                applyTableDarkTheme(registrationTable);
+            });
+        }
+        
         // Setup selected courses table
         selectedCourseColumn.setCellValueFactory(new PropertyValueFactory<>("course"));
         selectedSubjectColumn.setCellValueFactory(new PropertyValueFactory<>("subjectName"));
         selectedClassColumn.setCellValueFactory(new PropertyValueFactory<>("classNumber"));
+        
+        // Setup cell factories for selected courses table with dark theme
+        setupStringTableColumnCellFactory(selectedCourseColumn);
+        setupStringTableColumnCellFactory(selectedSubjectColumn);
+        setupStringTableColumnCellFactory(selectedClassColumn);
+        
+        // Apply dark theme styles directly to selected courses table
+        if (selectedCoursesTable != null) {
+            selectedCoursesTable.setStyle("-fx-background-color: #1a1a1a; -fx-control-inner-background: #1a1a1a;");
+            // Set row factory to ensure dark background
+            selectedCoursesTable.setRowFactory(tv -> {
+                TableRow<SelectedCourseInfo> row = new TableRow<>();
+                row.setStyle("-fx-background-color: #1a1a1a; -fx-text-background-color: #ffffff;");
+                row.itemProperty().addListener((obs, oldItem, newItem) -> {
+                    if (newItem != null) {
+                        row.setStyle("-fx-background-color: #1a1a1a; -fx-text-background-color: #ffffff;");
+                    } else {
+                        row.setStyle("-fx-background-color: #1a1a1a;");
+                    }
+                });
+                return row;
+            });
+            // Style column headers
+            Platform.runLater(() -> {
+                applyTableDarkTheme(selectedCoursesTable);
+            });
+        }
+        
+        // Initialize calendar view
+        currentDisplayMonth = YearMonth.now();
+        if (currentMonthLabel != null) {
+            updateMonthLabel(currentMonthLabel, currentDisplayMonth);
+        }
+        
+        // Setup calendar navigation
+        if (prevMonthButton != null) {
+            prevMonthButton.setOnAction(e -> handlePrevMonth());
+        }
+        if (nextMonthButton != null) {
+            nextMonthButton.setOnAction(e -> handleNextMonth());
+        }
+    }
+    
+    private <T> void setupStringTableColumnCellFactory(TableColumn<T, String> column) {
+        column.setCellFactory(col -> new TableCell<T, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                } else {
+                    setText(item);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                }
+                // Also set row background
+                TableRow<?> row = getTableRow();
+                if (row != null) {
+                    row.setStyle("-fx-background-color: #1a1a1a; -fx-text-background-color: #ffffff;");
+                }
+            }
+        });
+    }
+    
+    private <T> void setupIntegerTableColumnCellFactory(TableColumn<T, Integer> column) {
+        column.setCellFactory(col -> new TableCell<T, Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                } else {
+                    setText(String.valueOf(item));
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                }
+                // Also set row background
+                TableRow<?> row = getTableRow();
+                if (row != null) {
+                    row.setStyle("-fx-background-color: #1a1a1a; -fx-text-background-color: #ffffff;");
+                }
+            }
+        });
+    }
+    
+    private void applyTableDarkTheme(TableView<?> table) {
+        if (table == null) return;
+        
+        // Apply style to table
+        table.setStyle("-fx-background-color: #1a1a1a; -fx-control-inner-background: #1a1a1a;");
+        
+        // Style column headers
+        for (TableColumn<?, ?> col : table.getColumns()) {
+            col.setStyle("-fx-background-color: #2a2a2a;");
+        }
     }
     
     public void loadVirtualCalendar() {
@@ -142,7 +291,6 @@ public class VirtualScheduleController {
                     Platform.runLater(() -> {
                         showAlert(Alert.AlertType.ERROR, "Lỗi", 
                                 "Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại.");
-                        handleBack();
                     });
                     return;
                 }
@@ -262,6 +410,11 @@ public class VirtualScheduleController {
         
         // Restore selected courses từ local storage
         restoreSelectedCourses();
+        
+        // Hiển thị calendar view ban đầu
+        if (fullCalendarContainer != null && currentDisplayMonth != null) {
+            displayCalendarGrid(fullCalendarContainer, currentDisplayMonth);
+        }
     }
     
     @FXML
@@ -301,7 +454,15 @@ public class VirtualScheduleController {
     private VBox createCourseBox(VirtualCourse course) {
         VBox courseBox = new VBox(10);
         courseBox.setPadding(new Insets(15));
-        courseBox.setStyle("-fx-background-color: #ffffff; -fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 5, 0, 0, 2);");
+        courseBox.setStyle("-fx-background-color: #2a2a2a; -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.2), 5, 0, 0, 2);");
+        
+        // Hover effect
+        courseBox.setOnMouseEntered(e -> {
+            courseBox.setStyle("-fx-background-color: #333333; -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.4), 7, 0, 0, 3);");
+        });
+        courseBox.setOnMouseExited(e -> {
+            courseBox.setStyle("-fx-background-color: #2a2a2a; -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.2), 5, 0, 0, 2);");
+        });
         
         HBox headerBox = new HBox(10);
         headerBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
@@ -314,13 +475,16 @@ public class VirtualScheduleController {
         // Update checkbox state
         checkBox.setSelected(selectedCourses.contains(course));
         
+        // Style checkbox for dark theme
+        checkBox.setStyle("-fx-text-fill: #ffffff;");
+        
         // Hiển thị lớp số nếu có
         String classNumber = course.getClassNumber();
         HBox titleBox = new HBox(8);
         titleBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         
         Label courseNameLabel = new Label(course.getCourseName());
-        courseNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #1a1a1a;");
+        courseNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #ffffff;");
         courseNameLabel.setWrapText(true);
         
         // Hiển thị: checkbox, tên môn học, lớp số (nếu có)
@@ -329,7 +493,7 @@ public class VirtualScheduleController {
         
         if (!classNumber.isEmpty()) {
             Label classLabel = new Label(classNumber);
-            classLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #ffffff; -fx-background-color: linear-gradient(to bottom, #3498db, #2980b9); -fx-padding: 5 10 5 10; -fx-background-radius: 12; -fx-effect: dropshadow(one-pass-box, rgba(52,152,219,0.3), 3, 0, 0, 1);");
+            classLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #ffffff; -fx-background-color: linear-gradient(to bottom, #00d4ff, #0099cc); -fx-padding: 5 10 5 10; -fx-background-radius: 12; -fx-effect: dropshadow(one-pass-box, rgba(0,212,255,0.4), 3, 0, 0, 1);");
             titleBox.getChildren().add(classLabel);
         }
         
@@ -342,20 +506,20 @@ public class VirtualScheduleController {
         // Hiển thị lớp số nếu có (sử dụng lại biến classNumber đã khai báo ở trên)
         if (!classNumber.isEmpty()) {
             Label classLabel = new Label("📚 Lớp: " + classNumber);
-            classLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #2980b9; -fx-font-weight: bold;");
+            classLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #00d4ff; -fx-font-weight: bold;");
             infoBox.getChildren().add(classLabel);
         }
         
         if (course.getCourseCode() != null && !course.getCourseCode().isEmpty()) {
             Label codeLabel = new Label("🔢 Mã môn: " + course.getCourseCode());
-            codeLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555555;");
+            codeLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #99a8b8;");
             infoBox.getChildren().add(codeLabel);
         }
         
         // Hiển thị thời gian từ base_time
         if (course.getBaseTime() != null && !course.getBaseTime().isEmpty()) {
             Label timeLabel = new Label("⏰ " + course.getBaseTime());
-            timeLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #27ae60; -fx-font-weight: 500;");
+            timeLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #00ff88; -fx-font-weight: 500;");
             timeLabel.setWrapText(true);
             infoBox.getChildren().add(timeLabel);
         }
@@ -369,7 +533,7 @@ public class VirtualScheduleController {
                 String timeRange = course.mapLessonsToTimeRange(firstLesson);
                 if (!timeRange.equals(firstLesson)) {
                     Label detailTimeLabel = new Label("🕐 " + timeRange);
-                    detailTimeLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #2980b9; -fx-font-weight: bold; -fx-background-color: #e8f4f8; -fx-padding: 4 8 4 8; -fx-background-radius: 4;");
+                    detailTimeLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #00d4ff; -fx-font-weight: bold; -fx-background-color: #003d4d; -fx-padding: 4 8 4 8; -fx-background-radius: 4; -fx-border-color: #00d4ff; -fx-border-width: 1;");
                     infoBox.getChildren().add(detailTimeLabel);
                 }
             }
@@ -377,13 +541,13 @@ public class VirtualScheduleController {
         
         if (course.getTeacher() != null && !course.getTeacher().isEmpty()) {
             Label teacherLabel = new Label("👤 " + course.getTeacher());
-            teacherLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #7f8c8d;");
+            teacherLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #99a8b8;");
             infoBox.getChildren().add(teacherLabel);
         }
         
         if (course.getStudyLocation() != null && !course.getStudyLocation().isEmpty()) {
             Label locationLabel = new Label("📍 " + course.getStudyLocation());
-            locationLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #7f8c8d;");
+            locationLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #99a8b8;");
             infoBox.getChildren().add(locationLabel);
         }
         
@@ -476,31 +640,46 @@ public class VirtualScheduleController {
     }
     
     private void updateSelectedScheduleDisplay() {
-        selectedScheduleContainer.getChildren().clear();
+        // Update calendar view instead of list view
+        if (fullCalendarContainer != null && currentDisplayMonth != null) {
+            displayCalendarGrid(fullCalendarContainer, currentDisplayMonth);
+        }
+        
+        // Also update selected courses table
+        updateSelectedCoursesTable();
+    }
+    
+    private void displayCalendarGrid(VBox container, YearMonth yearMonth) {
+        if (container == null) return;
+        
+        container.getChildren().clear();
         
         if (selectedCourses.isEmpty()) {
             Label emptyLabel = new Label("Chưa có môn học nào được chọn");
-            emptyLabel.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 14px;");
-            selectedScheduleContainer.getChildren().add(emptyLabel);
+            emptyLabel.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 16px; -fx-padding: 50px;");
+            container.getChildren().add(emptyLabel);
             return;
         }
         
-        // Group by date
+        // Thu thập tất cả schedule slots từ selectedCourses
         Map<LocalDate, List<VirtualCourse.ScheduleSlot>> slotsByDate = new HashMap<>();
-        
         for (VirtualCourse course : selectedCourses) {
             for (VirtualCourse.ScheduleSlot slot : course.getScheduleSlots()) {
                 slotsByDate.computeIfAbsent(slot.getDate(), k -> new ArrayList<>()).add(slot);
             }
         }
         
-        // Display by date
-        slotsByDate.entrySet().stream()
-            .sorted(Map.Entry.comparingByKey())
-            .forEach(entry -> {
-                VBox dayBox = createDayScheduleBox(entry.getKey(), entry.getValue());
-                selectedScheduleContainer.getChildren().add(dayBox);
-            });
+        // Lọc slots trong tháng hiện tại
+        Map<LocalDate, List<VirtualCourse.ScheduleSlot>> monthSlots = new HashMap<>();
+        for (Map.Entry<LocalDate, List<VirtualCourse.ScheduleSlot>> entry : slotsByDate.entrySet()) {
+            if (YearMonth.from(entry.getKey()).equals(yearMonth)) {
+                monthSlots.put(entry.getKey(), entry.getValue());
+            }
+        }
+        
+        // Tạo calendar grid
+        VBox monthBox = createMonthCalendarGrid(yearMonth, monthSlots);
+        container.getChildren().add(monthBox);
     }
     
     private VBox createDayScheduleBox(LocalDate date, List<VirtualCourse.ScheduleSlot> slots) {
@@ -741,159 +920,272 @@ public class VirtualScheduleController {
     
     @FXML
     private void handleViewCalendar() {
-        if (selectedCourses.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Cảnh báo", 
-                    "Chưa có môn học nào được chọn. Vui lòng chọn môn học trước khi xem lịch.");
-            return;
-        }
+        // Method này không còn cần thiết vì calendar view đã được hiển thị mặc định
+        // Giữ lại để tránh lỗi nếu có reference từ FXML cũ
+    }
+    
+    @FXML
+    private void handleToggleInfo() {
+        // Hiển thị popup dialog với thông tin đăng ký
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("📊 Thông tin đăng ký");
+        dialog.setHeaderText(null);
         
-        // Tạo Stage fullscreen cho calendar view
-        Stage calendarStage = new Stage();
-        calendarStage.setTitle("Lịch học ảo - Calendar View");
-        calendarStage.initModality(Modality.WINDOW_MODAL);
-        calendarStage.initOwner(viewCalendarButton.getScene().getWindow());
-        calendarStage.initStyle(StageStyle.DECORATED);
+        VBox content = new VBox(20);
+        content.setPadding(new Insets(20));
+        content.setStyle("-fx-background-color: #1a1a1a;");
+        content.setPrefWidth(700);
         
-        // Tạo root container
-        VBox root = new VBox(15);
-        root.setStyle("-fx-background-color: #f5f5f5;");
+        // Bảng thông tin đăng ký
+        Label regTitle = new Label("📊 Bảng thông tin đăng ký");
+        regTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
         
-        // Header với navigation
-        VBox headerBox = new VBox(10);
-        headerBox.setPadding(new Insets(20));
-        headerBox.setStyle("-fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 0);");
+        TableView<CourseStats> regTable = new TableView<>();
+        regTable.setStyle("-fx-background-color: #1a1a1a; -fx-control-inner-background: #1a1a1a;");
+        regTable.setPrefHeight(200);
+        regTable.getStyleClass().add("dark-table");
+        // Set row factory for dark theme
+        regTable.setRowFactory(tv -> {
+            TableRow<CourseStats> row = new TableRow<>();
+            row.setStyle("-fx-background-color: #1a1a1a; -fx-text-background-color: #ffffff;");
+            row.itemProperty().addListener((obs, oldItem, newItem) -> {
+                if (newItem != null) {
+                    row.setStyle("-fx-background-color: #1a1a1a; -fx-text-background-color: #ffffff;");
+                } else {
+                    row.setStyle("-fx-background-color: #1a1a1a;");
+                }
+            });
+            return row;
+        });
         
-        HBox titleBox = new HBox(15);
-        titleBox.setAlignment(Pos.CENTER_LEFT);
+        TableColumn<CourseStats, String> courseCol = new TableColumn<>("Khóa");
+        courseCol.setCellValueFactory(new PropertyValueFactory<>("course"));
+        courseCol.setPrefWidth(90);
+        courseCol.setCellFactory(column -> new TableCell<CourseStats, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                } else {
+                    setText(item);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                }
+            }
+        });
         
-        Label titleLabel = new Label("📅 Lịch học ảo - Calendar View");
-        titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        TableColumn<CourseStats, Integer> regCountCol = new TableColumn<>("Đã đăng ký");
+        regCountCol.setCellValueFactory(new PropertyValueFactory<>("registeredCount"));
+        regCountCol.setPrefWidth(120);
+        regCountCol.setCellFactory(column -> new TableCell<CourseStats, Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                } else {
+                    setText(String.valueOf(item));
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                }
+            }
+        });
         
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        TableColumn<CourseStats, Integer> totalCol = new TableColumn<>("Tổng số môn");
+        totalCol.setCellValueFactory(new PropertyValueFactory<>("totalCount"));
+        totalCol.setPrefWidth(120);
+        totalCol.setCellFactory(column -> new TableCell<CourseStats, Integer>() {
+            @Override
+            protected void updateItem(Integer item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                } else {
+                    setText(String.valueOf(item));
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                }
+            }
+        });
         
-        Button closeButton = new Button("✕ Đóng");
-        closeButton.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-pref-width: 100px; -fx-pref-height: 35px; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: 500;");
-        closeButton.setOnAction(e -> calendarStage.close());
+        TableColumn<CourseStats, String> percentCol = new TableColumn<>("Tỷ lệ");
+        percentCol.setCellValueFactory(new PropertyValueFactory<>("percentage"));
+        percentCol.setPrefWidth(100);
+        percentCol.setCellFactory(column -> new TableCell<CourseStats, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                } else {
+                    setText(item);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                }
+            }
+        });
         
-        titleBox.getChildren().addAll(titleLabel, spacer, closeButton);
+        regTable.getColumns().addAll(courseCol, regCountCol, totalCol, percentCol);
+        regTable.getItems().addAll(registrationTable.getItems());
         
-        // Navigation box
-        HBox navBox = new HBox(20);
-        navBox.setAlignment(Pos.CENTER);
-        navBox.setPadding(new Insets(10, 0, 10, 0));
+        // Bảng danh sách lớp đã chọn
+        Label selectedTitle = new Label("✅ Danh sách lớp đã chọn");
+        selectedTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
         
-        Button prevMonthButton = new Button("◀");
-        prevMonthButton.setStyle("-fx-background-color: linear-gradient(to bottom, #3498db, #2980b9); -fx-text-fill: white; -fx-pref-width: 50px; -fx-pref-height: 50px; -fx-background-radius: 25px; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 18px; -fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.3), 4, 0, 0, 2);");
+        TableView<SelectedCourseInfo> selectedTable = new TableView<>();
+        selectedTable.setStyle("-fx-background-color: #1a1a1a; -fx-control-inner-background: #1a1a1a;");
+        selectedTable.setPrefHeight(250);
+        selectedTable.getStyleClass().add("dark-table");
+        // Set row factory for dark theme
+        selectedTable.setRowFactory(tv -> {
+            TableRow<SelectedCourseInfo> row = new TableRow<>();
+            row.setStyle("-fx-background-color: #1a1a1a; -fx-text-background-color: #ffffff;");
+            row.itemProperty().addListener((obs, oldItem, newItem) -> {
+                if (newItem != null) {
+                    row.setStyle("-fx-background-color: #1a1a1a; -fx-text-background-color: #ffffff;");
+                } else {
+                    row.setStyle("-fx-background-color: #1a1a1a;");
+                }
+            });
+            return row;
+        });
         
-        Label currentMonthLabel = new Label();
-        currentMonthLabel.setStyle("-fx-text-fill: #2980b9; -fx-padding: 10px 30px; -fx-background-color: linear-gradient(to bottom, #e8f4f8, #d6eaf8); -fx-background-radius: 8; -fx-min-width: 250px; -fx-font-weight: bold; -fx-font-size: 20px;");
+        TableColumn<SelectedCourseInfo, String> selCourseCol = new TableColumn<>("Khóa");
+        selCourseCol.setCellValueFactory(new PropertyValueFactory<>("course"));
+        selCourseCol.setPrefWidth(90);
+        selCourseCol.setCellFactory(column -> new TableCell<SelectedCourseInfo, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                } else {
+                    setText(item);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                }
+            }
+        });
         
-        Button nextMonthButton = new Button("▶");
-        nextMonthButton.setStyle("-fx-background-color: linear-gradient(to bottom, #3498db, #2980b9); -fx-text-fill: white; -fx-pref-width: 50px; -fx-pref-height: 50px; -fx-background-radius: 25px; -fx-cursor: hand; -fx-font-weight: bold; -fx-font-size: 18px; -fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.3), 4, 0, 0, 2);");
+        TableColumn<SelectedCourseInfo, String> selSubjectCol = new TableColumn<>("Tên môn học");
+        selSubjectCol.setCellValueFactory(new PropertyValueFactory<>("subjectName"));
+        selSubjectCol.setPrefWidth(280);
+        selSubjectCol.setCellFactory(column -> new TableCell<SelectedCourseInfo, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                } else {
+                    setText(item);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                }
+            }
+        });
         
-        navBox.getChildren().addAll(prevMonthButton, currentMonthLabel, nextMonthButton);
+        TableColumn<SelectedCourseInfo, String> selClassCol = new TableColumn<>("Lớp");
+        selClassCol.setCellValueFactory(new PropertyValueFactory<>("classNumber"));
+        selClassCol.setPrefWidth(90);
+        selClassCol.setCellFactory(column -> new TableCell<SelectedCourseInfo, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                } else {
+                    setText(item);
+                    setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
+                }
+            }
+        });
         
-        headerBox.getChildren().addAll(titleBox, navBox);
+        selectedTable.getColumns().addAll(selCourseCol, selSubjectCol, selClassCol);
+        selectedTable.getItems().addAll(selectedCoursesTable.getItems());
         
-        // Calendar container
-        VBox calendarContainer = new VBox();
-        calendarContainer.setAlignment(Pos.CENTER);
-        calendarContainer.setPadding(new Insets(20));
+        content.getChildren().addAll(regTitle, regTable, selectedTitle, selectedTable);
         
-        ScrollPane scrollPane = new ScrollPane(calendarContainer);
+        ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
-        scrollPane.setStyle("-fx-background-color: transparent;");
+        scrollPane.setPrefHeight(500);
+        scrollPane.setStyle("-fx-background-color: #1a1a1a;");
         
-        root.getChildren().addAll(headerBox, scrollPane);
+        dialog.getDialogPane().setContent(scrollPane);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().setStyle("-fx-background-color: #1a1a1a;");
         
-        // Tạo scene và set fullscreen
-        Scene scene = new Scene(root, 1400, 900);
-        calendarStage.setScene(scene);
-        calendarStage.setMaximized(true);
+        // Style dialog buttons and ensure all white backgrounds are changed
+        Platform.runLater(() -> {
+            Button closeButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
+            if (closeButton != null) {
+                closeButton.setStyle(
+                    "-fx-background-color: #2a2a2a; -fx-text-fill: #ffffff; -fx-border-color: #00d4ff; -fx-border-width: 1; -fx-border-radius: 5; -fx-background-radius: 5;"
+                );
+            }
+            // Ensure scroll pane viewport is dark (check for null first)
+            javafx.scene.Node viewport = scrollPane.lookup(".viewport");
+            if (viewport != null) {
+                viewport.setStyle("-fx-background-color: #1a1a1a;");
+            }
+        });
         
-        // Tìm tháng đầu tiên có lịch hoặc tháng hiện tại
-        YearMonth currentMonth = YearMonth.now();
-        if (!selectedCourses.isEmpty()) {
-            LocalDate firstDate = selectedCourses.stream()
-                .flatMap(course -> course.getScheduleSlots().stream())
-                .map(VirtualCourse.ScheduleSlot::getDate)
-                .min(LocalDate::compareTo)
-                .orElse(LocalDate.now());
-            currentMonth = YearMonth.from(firstDate);
+        dialog.showAndWait();
+    }
+    
+    @FXML
+    private void handlePrevMonth() {
+        if (currentDisplayMonth != null) {
+            currentDisplayMonth = currentDisplayMonth.minusMonths(1);
+            if (currentMonthLabel != null) {
+                updateMonthLabel(currentMonthLabel, currentDisplayMonth);
+            }
+            if (fullCalendarContainer != null) {
+                displayCalendarGrid(fullCalendarContainer, currentDisplayMonth);
+            }
         }
-        
-        final YearMonth[] displayMonth = {currentMonth};
-        
-        // Update month label
-        updateMonthLabel(currentMonthLabel, displayMonth[0]);
-        
-        // Navigation handlers
-        prevMonthButton.setOnAction(e -> {
-            displayMonth[0] = displayMonth[0].minusMonths(1);
-            updateMonthLabel(currentMonthLabel, displayMonth[0]);
-            displayCalendarGrid(calendarContainer, displayMonth[0]);
-        });
-        
-        nextMonthButton.setOnAction(e -> {
-            displayMonth[0] = displayMonth[0].plusMonths(1);
-            updateMonthLabel(currentMonthLabel, displayMonth[0]);
-            displayCalendarGrid(calendarContainer, displayMonth[0]);
-        });
-        
-        // Hiển thị calendar ban đầu
-        displayCalendarGrid(calendarContainer, displayMonth[0]);
-        
-        calendarStage.show();
+    }
+    
+    @FXML
+    private void handleNextMonth() {
+        if (currentDisplayMonth != null) {
+            currentDisplayMonth = currentDisplayMonth.plusMonths(1);
+            if (currentMonthLabel != null) {
+                updateMonthLabel(currentMonthLabel, currentDisplayMonth);
+            }
+            if (fullCalendarContainer != null) {
+                displayCalendarGrid(fullCalendarContainer, currentDisplayMonth);
+            }
+        }
     }
     
     private void updateMonthLabel(Label label, YearMonth yearMonth) {
         String monthName = yearMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.forLanguageTag("vi")));
         label.setText("📅 " + monthName);
-    }
-    
-    private void displayCalendarGrid(VBox container, YearMonth yearMonth) {
-        container.getChildren().clear();
-        
-        // Thu thập tất cả schedule slots từ selectedCourses
-        Map<LocalDate, List<VirtualCourse.ScheduleSlot>> slotsByDate = new HashMap<>();
-        for (VirtualCourse course : selectedCourses) {
-            for (VirtualCourse.ScheduleSlot slot : course.getScheduleSlots()) {
-                slotsByDate.computeIfAbsent(slot.getDate(), k -> new ArrayList<>()).add(slot);
-            }
+        if (label != null) {
+            label.setStyle("-fx-text-fill: #00d4ff; -fx-font-weight: bold; -fx-font-size: 20px;");
         }
-        
-        // Lọc slots trong tháng hiện tại
-        Map<LocalDate, List<VirtualCourse.ScheduleSlot>> monthSlots = new HashMap<>();
-        for (Map.Entry<LocalDate, List<VirtualCourse.ScheduleSlot>> entry : slotsByDate.entrySet()) {
-            if (YearMonth.from(entry.getKey()).equals(yearMonth)) {
-                monthSlots.put(entry.getKey(), entry.getValue());
-            }
-        }
-        
-        // Tạo calendar grid
-        VBox monthBox = createMonthCalendarGrid(yearMonth, monthSlots);
-        container.getChildren().add(monthBox);
     }
     
     private VBox createMonthCalendarGrid(YearMonth yearMonth, Map<LocalDate, List<VirtualCourse.ScheduleSlot>> slotsByDate) {
         VBox monthBox = new VBox(15);
         monthBox.setPadding(new Insets(20));
         monthBox.setAlignment(Pos.CENTER);
-        monthBox.setStyle("-fx-background-color: linear-gradient(to bottom, #ffffff, #f8f9fa); -fx-border-color: #3498db; -fx-border-radius: 12; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.2), 10, 0, 0, 3);");
+        monthBox.setStyle("-fx-background-color: linear-gradient(to bottom, #1a1a1a, #0d0d0d); -fx-border-color: #00d4ff; -fx-border-radius: 12; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.3), 10, 0, 0, 3);");
         
         // Tạo calendar grid
         GridPane calendarGrid = new GridPane();
         calendarGrid.setHgap(3);
         calendarGrid.setVgap(3);
         calendarGrid.setPadding(new Insets(10));
-        calendarGrid.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 8;");
+        calendarGrid.setStyle("-fx-background-color: #0d0d0d; -fx-background-radius: 8;");
         
         // Header cho các ngày trong tuần
         String[] dayNames = {"Chủ Nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"};
         for (int i = 0; i < 7; i++) {
             Label dayHeader = new Label(dayNames[i]);
-            dayHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: white; -fx-padding: 12px; -fx-alignment: center; -fx-background-color: linear-gradient(to bottom, #34495e, #2c3e50); -fx-background-radius: 6 6 0 0;");
+            dayHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #00d4ff; -fx-padding: 12px; -fx-alignment: center; -fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-background-radius: 6 6 0 0; -fx-border-color: #00d4ff; -fx-border-width: 0 0 1 0;");
             dayHeader.setMaxWidth(Double.MAX_VALUE);
             dayHeader.setPrefHeight(45);
             GridPane.setHgrow(dayHeader, Priority.ALWAYS);
@@ -951,12 +1243,12 @@ public class VirtualScheduleController {
         dayCell.setPadding(new Insets(5));
         dayCell.setAlignment(Pos.TOP_CENTER);
         
-        // Xác định style dựa trên ngày
+        // Xác định style dựa trên ngày - Theme đen
         boolean isCurrentMonth = YearMonth.from(date).equals(yearMonth);
-        String backgroundColor = isToday ? "#e8f4f8" : (isCurrentMonth ? "#ffffff" : "#f5f5f5");
-        String borderColor = isToday ? "#3498db" : "#e0e0e0";
-        String textColor = isToday ? "#2980b9" : (isCurrentMonth ? "#2c3e50" : "#bdc3c7");
-        int borderWidth = isToday ? 2 : 1;
+        String backgroundColor = isToday ? "#003d4d" : (isCurrentMonth ? "#1a1a1a" : "#0d0d0d");
+        String borderColor = isToday ? "#00d4ff" : (slots.isEmpty() ? "#333333" : "#00d4ff");
+        String textColor = isToday ? "#00d4ff" : (isCurrentMonth ? "#ffffff" : "#666666");
+        int borderWidth = isToday ? 3 : (slots.isEmpty() ? 1 : 2);
         
         dayCell.setStyle(String.format(
             "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
@@ -975,16 +1267,16 @@ public class VirtualScheduleController {
         
         // Hiển thị số lượng buổi học
         if (!slots.isEmpty()) {
-            // Thêm background highlight cho ngày có lịch
+            // Thêm background highlight cho ngày có lịch - màu xanh cyan nổi bật
             if (!isToday) {
                 dayCell.setStyle(String.format(
                     "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
-                    isCurrentMonth ? "#fff9e6" : "#f5f5f5", borderColor, borderWidth
+                    isCurrentMonth ? "#002a33" : "#0d0d0d", "#00d4ff", 2
                 ));
             }
             
             Label countLabel = new Label(slots.size() + " buổi");
-            countLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #e74c3c; -fx-font-weight: bold; -fx-background-color: #ffebee; -fx-padding: 2 6 2 6; -fx-background-radius: 10;");
+            countLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #00ff88; -fx-font-weight: bold; -fx-background-color: #003d1a; -fx-padding: 2 6 2 6; -fx-background-radius: 10; -fx-border-color: #00ff88; -fx-border-width: 1;");
             dayCell.getChildren().add(countLabel);
             
             // Hiển thị tối đa 2 môn học đầu tiên
@@ -1004,7 +1296,7 @@ public class VirtualScheduleController {
                         subjectText = subjectText.substring(0, 13) + "...";
                     }
                     Label subjectLabel = new Label(subjectText);
-                    subjectLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #555; -fx-padding: 2 4 2 4; -fx-background-color: #f0f0f0; -fx-background-radius: 4; -fx-max-width: 100;");
+                    subjectLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #00d4ff; -fx-padding: 2 4 2 4; -fx-background-color: #003d4d; -fx-background-radius: 4; -fx-max-width: 100; -fx-border-color: #00d4ff; -fx-border-width: 0.5;");
                     subjectLabel.setWrapText(true);
                     dayCell.getChildren().add(subjectLabel);
                     displayedCount++;
@@ -1013,24 +1305,39 @@ public class VirtualScheduleController {
             
             if (slots.size() > maxDisplay) {
                 Label moreLabel = new Label("+" + (slots.size() - maxDisplay) + " nữa");
-                moreLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #7f8c8d; -fx-font-style: italic;");
+                moreLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #00d4ff; -fx-font-style: italic;");
                 dayCell.getChildren().add(moreLabel);
             }
             
-            // Thêm cursor và hover effect
+            // Thêm cursor và hover effect - màu xanh cyan sáng
             dayCell.setCursor(javafx.scene.Cursor.HAND);
             dayCell.setOnMouseEntered(e -> {
                 dayCell.setStyle(String.format(
-                    "-fx-background-color: %s; -fx-border-color: #3498db; -fx-border-radius: 6; -fx-border-width: 2; -fx-cursor: hand;",
-                    isToday ? "#d6eaf8" : (isCurrentMonth ? "#f0f8ff" : "#f5f5f5")
+                    "-fx-background-color: %s; -fx-border-color: #00ffff; -fx-border-radius: 6; -fx-border-width: 3; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,255,255,0.5), 5, 0, 0, 2);",
+                    isToday ? "#004d5d" : (isCurrentMonth ? "#002a33" : "#0d0d0d")
                 ));
             });
             
             dayCell.setOnMouseExited(e -> {
-                String bgColor = isToday ? "#e8f4f8" : (isCurrentMonth ? (!slots.isEmpty() ? "#fff9e6" : "#ffffff") : "#f5f5f5");
+                String bgColor = isToday ? "#003d4d" : (isCurrentMonth ? (!slots.isEmpty() ? "#002a33" : "#1a1a1a") : "#0d0d0d");
                 dayCell.setStyle(String.format(
                     "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
                     bgColor, borderColor, borderWidth
+                ));
+            });
+        } else {
+            // Hover effect cho ngày không có lịch
+            dayCell.setOnMouseEntered(e -> {
+                dayCell.setStyle(String.format(
+                    "-fx-background-color: %s; -fx-border-color: #555555; -fx-border-radius: 6; -fx-border-width: 1;",
+                    isCurrentMonth ? "#2a2a2a" : "#0d0d0d"
+                ));
+            });
+            
+            dayCell.setOnMouseExited(e -> {
+                dayCell.setStyle(String.format(
+                    "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
+                    backgroundColor, borderColor, borderWidth
                 ));
             });
         }
@@ -1049,10 +1356,11 @@ public class VirtualScheduleController {
             slotsByCourse.computeIfAbsent(slot.getVirtualCourse(), k -> new ArrayList<>()).add(slot);
         }
         
-        // Tạo nội dung dialog
+        // Tạo nội dung dialog - Theme đen
         VBox content = new VBox(15);
         content.setPadding(new Insets(20));
         content.setPrefWidth(600);
+        content.setStyle("-fx-background-color: #1a1a1a;");
         
         for (Map.Entry<VirtualCourse, List<VirtualCourse.ScheduleSlot>> entry : slotsByCourse.entrySet()) {
             VirtualCourse course = entry.getKey();
@@ -1060,19 +1368,19 @@ public class VirtualScheduleController {
             
             VBox sessionBox = new VBox(10);
             sessionBox.setPadding(new Insets(15));
-            sessionBox.setStyle("-fx-background-color: linear-gradient(to bottom, #f8f9fa, #ffffff); -fx-border-color: #d0d0d0; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.05), 3, 0, 0, 1);");
+            sessionBox.setStyle("-fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.3), 5, 0, 0, 2);");
             
             // Môn học
             HBox titleBox = new HBox(8);
             titleBox.setAlignment(Pos.CENTER_LEFT);
             
             Label subjectLabel = new Label("📚 " + (course.getDisplayCourseName() != null ? course.getDisplayCourseName() : course.getCourseName()));
-            subjectLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2c3e50; -fx-padding: 5 0 5 0;");
+            subjectLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #00d4ff; -fx-padding: 5 0 5 0;");
             
             String classNumber = course.getClassNumber();
             if (!classNumber.isEmpty()) {
                 Label classLabel = new Label(classNumber);
-                classLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #ffffff; -fx-background-color: linear-gradient(to bottom, #3498db, #2980b9); -fx-padding: 4 8 4 8; -fx-background-radius: 10;");
+                classLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #ffffff; -fx-background-color: linear-gradient(to bottom, #00d4ff, #0099cc); -fx-padding: 4 8 4 8; -fx-background-radius: 10;");
                 titleBox.getChildren().add(classLabel);
             }
             
@@ -1085,23 +1393,23 @@ public class VirtualScheduleController {
             timeBox.setAlignment(Pos.CENTER_LEFT);
             Label timeIcon = new Label("🕐");
             Label timeLabel = new Label(timeRange);
-            timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #2980b9; -fx-background-color: #e8f4f8; -fx-padding: 6 14 6 14; -fx-background-radius: 6;");
+            timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #00ff88; -fx-background-color: #003d1a; -fx-padding: 6 14 6 14; -fx-background-radius: 6; -fx-border-color: #00ff88; -fx-border-width: 1;");
             timeBox.getChildren().addAll(timeIcon, timeLabel);
             
             VBox infoBox = new VBox(8);
             if (course.getCourseCode() != null && !course.getCourseCode().isEmpty()) {
                 Label codeLabel = new Label("🔢 Mã môn: " + course.getCourseCode());
-                codeLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555555;");
+                codeLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #00d4ff;");
                 infoBox.getChildren().add(codeLabel);
             }
             if (course.getStudyLocation() != null && !course.getStudyLocation().isEmpty()) {
                 Label locationLabel = new Label("📍 Phòng học: " + course.getStudyLocation());
-                locationLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555555;");
+                locationLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #ffffff;");
                 infoBox.getChildren().add(locationLabel);
             }
             if (course.getTeacher() != null && !course.getTeacher().isEmpty()) {
                 Label teacherLabel = new Label("👤 Giảng viên: " + course.getTeacher());
-                teacherLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555555;");
+                teacherLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #ffffff;");
                 infoBox.getChildren().add(teacherLabel);
             }
             
@@ -1116,29 +1424,16 @@ public class VirtualScheduleController {
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefHeight(400);
-        scrollPane.setStyle("-fx-background-color: transparent;");
+        scrollPane.setStyle("-fx-background-color: #1a1a1a;");
         
         dialog.getDialogPane().setContent(scrollPane);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.getDialogPane().setStyle("-fx-background-color: #f5f5f5;");
+        dialog.getDialogPane().setStyle("-fx-background-color: #1a1a1a;");
         
         dialog.showAndWait();
     }
     
     @FXML
-    private void handleBack() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainScreen.fxml"));
-            Parent root = loader.load();
-            
-            Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(new Scene(root, 1200, 800));
-            stage.setTitle("KMA Legend Desktop - Trang chủ");
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
     
     private String formatDate(LocalDate date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -1185,9 +1480,30 @@ public class VirtualScheduleController {
         return "";
     }
     
-    private void updateRegistrationTable() {
-        registrationTable.getItems().clear();
+    private void updateSelectedCoursesTable() {
+        if (selectedCoursesTable == null) return;
         selectedCoursesTable.getItems().clear();
+        
+        for (VirtualCourse selectedCourse : selectedCourses) {
+            SelectedCourseInfo info = new SelectedCourseInfo(
+                selectedCourse.getCourse(),
+                selectedCourse.getDisplayCourseName() != null ? selectedCourse.getDisplayCourseName() : selectedCourse.getCourseName(),
+                selectedCourse.getClassNumber()
+            );
+            selectedCoursesTable.getItems().add(info);
+        }
+        
+        // Reapply dark theme after data is added
+        Platform.runLater(() -> {
+            applyTableDarkTheme(selectedCoursesTable);
+        });
+    }
+    
+    private void updateRegistrationTable() {
+        if (registrationTable == null) return;
+        registrationTable.getItems().clear();
+        
+        updateSelectedCoursesTable();
         
         if (allCourses.isEmpty()) {
             return;
@@ -1218,14 +1534,6 @@ public class VirtualScheduleController {
             if (displayName != null && !displayName.isEmpty()) {
                 registeredSubjectsByCourse.computeIfAbsent(courseKey, k -> new HashSet<>()).add(displayName);
             }
-            
-            // Thêm vào bảng danh sách lớp đã chọn
-            SelectedCourseInfo info = new SelectedCourseInfo(
-                selectedCourse.getCourse(),
-                selectedCourse.getDisplayCourseName() != null ? selectedCourse.getDisplayCourseName() : selectedCourse.getCourseName(),
-                selectedCourse.getClassNumber()
-            );
-            selectedCoursesTable.getItems().add(info);
         }
         
         // Cập nhật số môn đã đăng ký cho mỗi course
@@ -1242,6 +1550,11 @@ public class VirtualScheduleController {
         List<CourseStats> statsList = new ArrayList<>(statsMap.values());
         statsList.sort((a, b) -> a.getCourse().compareTo(b.getCourse()));
         registrationTable.getItems().addAll(statsList);
+        
+        // Reapply dark theme after data is added
+        Platform.runLater(() -> {
+            applyTableDarkTheme(registrationTable);
+        });
     }
     
     /**

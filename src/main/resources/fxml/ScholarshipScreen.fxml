@@ -14,7 +14,6 @@
          <children>
             <HBox alignment="CENTER_LEFT" spacing="15.0">
                <children>
-                  <Button fx:id="backButton" mnemonicParsing="false" onAction="#handleBack" text="← Quay lại" styleClass="back-button" />
                   <Label text="Danh sách học bổng dự kiến" styleClass="page-title">
                      <font>
                         <Font name="System Bold" size="22.0" />
@@ -24,7 +23,7 @@
                   <HBox alignment="CENTER_RIGHT" spacing="15.0">
                      <children>
                         <Label text="Lọc theo khóa:" styleClass="status-label" />
-                        <ComboBox fx:id="courseFilterComboBox" prefWidth="150.0" />
+                        <ComboBox fx:id="courseFilterComboBox" prefWidth="150.0" prefHeight="38.0" styleClass="modern-combo" />
                         <Button fx:id="filterButton" mnemonicParsing="false" onAction="#handleFilter" text="🔍 Lọc" styleClass="menu-button" />
                      </children>
                   </HBox>

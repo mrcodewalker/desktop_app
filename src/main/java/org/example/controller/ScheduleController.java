@@ -64,9 +64,6 @@ public class ScheduleController {
     private TableColumn<ScheduleItem, String> teacherColumn;
     
     @FXML
-    private Button backButton;
-    
-    @FXML
     private Label statusLabel;
     
     @FXML
@@ -128,7 +125,7 @@ public class ScheduleController {
     private Map<String, VBox> monthBoxMap = new HashMap<>();
     private Map<LocalDate, VBox> dayBoxMap = new HashMap<>();
     private boolean isInitialLoad = true;
-    private boolean isCalendarView = false;
+    private boolean isCalendarView = true;
     private YearMonth currentDisplayMonth;
     
     public void setAuthToken(String token) {
@@ -177,6 +174,20 @@ public class ScheduleController {
             }
         });
         
+        // Mặc định hiển thị calendar view
+        if (splitPane != null) {
+            splitPane.setVisible(false);
+            splitPane.setManaged(false);
+        }
+        if (fullCalendarView != null) {
+            fullCalendarView.setVisible(true);
+            fullCalendarView.setManaged(true);
+        }
+        
+        // Set tháng hiện tại
+        LocalDate today = LocalDate.now();
+        currentDisplayMonth = YearMonth.from(today);
+        
         // Load từ local storage nếu có (loadFilterState sẽ được gọi trong loadFromLocalStorage)
         loadFromLocalStorage();
     }
@@ -186,22 +197,8 @@ public class ScheduleController {
             org.example.service.LocalStorageService storage = org.example.service.LocalStorageService.getInstance();
             String scheduleJson = storage.loadSchedule();
             if (scheduleJson != null && !scheduleJson.isEmpty()) {
-                // Load filter state trước để biết có filter hay không
-                loadFilterState();
-                boolean hasFilter = monthFilterComboBox.getSelectionModel().getSelectedIndex() > 0 || 
-                    dateFilterPicker.getValue() != null;
-                
-                // Nếu có filter, không scroll đến ngày hôm nay
-                if (hasFilter) {
-                    isInitialLoad = false;
-                }
-                
+                // Không load filter state nữa, hiển thị tất cả lịch học
                 loadScheduleFromJson(scheduleJson);
-                
-                // Nếu có filter, apply lại filter sau khi load
-                if (hasFilter) {
-                    applyFilter();
-                }
             }
         } catch (IOException e) {
             System.err.println("Error loading schedule from local storage: " + e.getMessage());
@@ -337,9 +334,18 @@ public class ScheduleController {
         // Cập nhật filter options
         updateFilterOptions();
         
-        // Apply filter (mặc định hiển thị tất cả)
-        // applyFilter() sẽ tự động scroll đến ngày hôm nay hoặc ngày gần nhất nếu là lần đầu load
-        applyFilter();
+        // Không apply filter, hiển thị tất cả lịch học
+        filteredScheduleItems.clear();
+        filteredScheduleItems.addAll(allScheduleItems);
+        
+        // Hiển thị calendar view
+        if (isCalendarView) {
+            displayCalendarGridView();
+        } else {
+            displayCalendarView();
+        }
+        
+        statusLabel.setText("Đã tải " + allScheduleItems.size() + " buổi học");
     }
     
     private void updateSubjectInfo() {
@@ -829,14 +835,19 @@ public class ScheduleController {
     }
     
     private void displayCalendarGridView() {
-        if (fullCalendarContainer == null || currentDisplayMonth == null) return;
+        if (fullCalendarContainer == null) return;
+        
+        // Nếu chưa có currentDisplayMonth, set về tháng hiện tại
+        if (currentDisplayMonth == null) {
+            LocalDate today = LocalDate.now();
+            currentDisplayMonth = YearMonth.from(today);
+        }
         
         fullCalendarContainer.getChildren().clear();
         dayBoxMap.clear();
         
-        // Sử dụng filteredScheduleItems thay vì allScheduleItems
-        List<ScheduleItem> itemsToDisplay = filteredScheduleItems.isEmpty() ? 
-            allScheduleItems : filteredScheduleItems;
+        // Hiển thị tất cả lịch học, không cần filter
+        List<ScheduleItem> itemsToDisplay = allScheduleItems;
         
         // Lọc các items trong tháng hiện tại
         List<ScheduleItem> monthItems = new ArrayList<>();
@@ -864,7 +875,7 @@ public class ScheduleController {
         VBox monthBox = new VBox(15);
         monthBox.setPadding(new Insets(20));
         monthBox.setAlignment(javafx.geometry.Pos.CENTER);
-        monthBox.setStyle("-fx-background-color: linear-gradient(to bottom, #ffffff, #f8f9fa); -fx-border-color: #3498db; -fx-border-radius: 12; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.2), 10, 0, 0, 3);");
+        monthBox.setStyle("-fx-background-color: linear-gradient(to bottom, #1a1a1a, #0d0d0d); -fx-border-color: #00d4ff; -fx-border-radius: 12; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.3), 10, 0, 0, 3);");
         
         // Tạo map để nhóm lịch theo ngày
         Map<LocalDate, List<ScheduleItem>> dailySchedule = new HashMap<>();
@@ -879,13 +890,13 @@ public class ScheduleController {
         calendarGrid.setHgap(3);
         calendarGrid.setVgap(3);
         calendarGrid.setPadding(new Insets(10));
-        calendarGrid.setStyle("-fx-background-color: #f8f9fa; -fx-background-radius: 8;");
+        calendarGrid.setStyle("-fx-background-color: #0d0d0d; -fx-background-radius: 8;");
         
         // Header cho các ngày trong tuần
         String[] dayNames = {"Chủ Nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"};
         for (int i = 0; i < 7; i++) {
             Label dayHeader = new Label(dayNames[i]);
-            dayHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: white; -fx-padding: 12px; -fx-alignment: center; -fx-background-color: linear-gradient(to bottom, #34495e, #2c3e50); -fx-background-radius: 6 6 0 0;");
+            dayHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #00d4ff; -fx-padding: 12px; -fx-alignment: center; -fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-background-radius: 6 6 0 0; -fx-border-color: #00d4ff; -fx-border-width: 0 0 1 0;");
             dayHeader.setMaxWidth(Double.MAX_VALUE);
             dayHeader.setPrefHeight(45);
             GridPane.setHgrow(dayHeader, Priority.ALWAYS);
@@ -943,12 +954,12 @@ public class ScheduleController {
         dayCell.setPadding(new Insets(5));
         dayCell.setAlignment(javafx.geometry.Pos.TOP_CENTER);
         
-        // Xác định style dựa trên ngày
+        // Xác định style dựa trên ngày - Theme đen
         boolean isCurrentMonth = YearMonth.from(date).equals(yearMonth);
-        String backgroundColor = isToday ? "#e8f4f8" : (isCurrentMonth ? "#ffffff" : "#f5f5f5");
-        String borderColor = isToday ? "#3498db" : "#e0e0e0";
-        String textColor = isToday ? "#2980b9" : (isCurrentMonth ? "#2c3e50" : "#bdc3c7");
-        int borderWidth = isToday ? 2 : 1;
+        String backgroundColor = isToday ? "#003d4d" : (isCurrentMonth ? "#1a1a1a" : "#0d0d0d");
+        String borderColor = isToday ? "#00d4ff" : (items.isEmpty() ? "#333333" : "#00d4ff");
+        String textColor = isToday ? "#00d4ff" : (isCurrentMonth ? "#ffffff" : "#666666");
+        int borderWidth = isToday ? 3 : (items.isEmpty() ? 1 : 2);
         
         dayCell.setStyle(String.format(
             "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
@@ -967,16 +978,16 @@ public class ScheduleController {
         
         // Hiển thị số lượng buổi học
         if (!items.isEmpty()) {
-            // Thêm background highlight cho ngày có lịch
+            // Thêm background highlight cho ngày có lịch - màu xanh cyan nổi bật
             if (!isToday) {
                 dayCell.setStyle(String.format(
                     "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
-                    isCurrentMonth ? "#fff9e6" : "#f5f5f5", borderColor, borderWidth
+                    isCurrentMonth ? "#002a33" : "#0d0d0d", "#00d4ff", 2
                 ));
             }
             
             Label countLabel = new Label(items.size() + " buổi");
-            countLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #e74c3c; -fx-font-weight: bold; -fx-background-color: #ffebee; -fx-padding: 2 6 2 6; -fx-background-radius: 10;");
+            countLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #00ff88; -fx-font-weight: bold; -fx-background-color: #003d1a; -fx-padding: 2 6 2 6; -fx-background-radius: 10; -fx-border-color: #00ff88; -fx-border-width: 1;");
             dayCell.getChildren().add(countLabel);
             
             // Hiển thị tối đa 2 môn học đầu tiên
@@ -988,14 +999,14 @@ public class ScheduleController {
                     subjectText = subjectText.substring(0, 13) + "...";
                 }
                 Label subjectLabel = new Label(subjectText);
-                subjectLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #555; -fx-padding: 2 4 2 4; -fx-background-color: #f0f0f0; -fx-background-radius: 4; -fx-max-width: 100;");
+                subjectLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #00d4ff; -fx-padding: 2 4 2 4; -fx-background-color: #003d4d; -fx-background-radius: 4; -fx-max-width: 100; -fx-border-color: #00d4ff; -fx-border-width: 0.5;");
                 subjectLabel.setWrapText(true);
                 dayCell.getChildren().add(subjectLabel);
             }
             
             if (items.size() > 2) {
                 Label moreLabel = new Label("+" + (items.size() - 2) + " nữa");
-                moreLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #7f8c8d; -fx-font-style: italic;");
+                moreLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #99a8b8; -fx-font-style: italic;");
                 dayCell.getChildren().add(moreLabel);
             }
             
@@ -1008,7 +1019,7 @@ public class ScheduleController {
                     .append(" - ").append(item.getSubject()).append("\n");
             }
             Tooltip tooltip = new Tooltip(tooltipText.toString().trim());
-            tooltip.setStyle("-fx-font-size: 11px;");
+            tooltip.setStyle("-fx-font-size: 11px; -fx-background-color: #1a1a1a; -fx-text-fill: #ffffff;");
             Tooltip.install(dayCell, tooltip);
         }
         
@@ -1020,14 +1031,19 @@ public class ScheduleController {
         dayCell.setOnMouseEntered(e -> {
             if (!items.isEmpty() || isCurrentMonth) {
                 dayCell.setStyle(String.format(
-                    "-fx-background-color: %s; -fx-border-color: #3498db; -fx-border-radius: 6; -fx-border-width: 2; -fx-cursor: hand;",
-                    isToday ? "#d6eaf8" : (isCurrentMonth ? "#f0f8ff" : "#f5f5f5")
+                    "-fx-background-color: %s; -fx-border-color: #00ffff; -fx-border-radius: 6; -fx-border-width: 3; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,255,255,0.5), 5, 0, 0, 2);",
+                    isToday ? "#003d4d" : (isCurrentMonth ? "#002a33" : "#0d0d0d")
+                ));
+            } else {
+                dayCell.setStyle(String.format(
+                    "-fx-background-color: %s; -fx-border-color: #555555; -fx-border-radius: 6; -fx-border-width: 1;",
+                    isCurrentMonth ? "#2a2a2a" : "#0d0d0d"
                 ));
             }
         });
         
         dayCell.setOnMouseExited(e -> {
-            String bgColor = isToday ? "#e8f4f8" : (isCurrentMonth ? (!items.isEmpty() ? "#fff9e6" : "#ffffff") : "#f5f5f5");
+            String bgColor = isToday ? "#003d4d" : (isCurrentMonth ? (!items.isEmpty() ? "#002a33" : "#1a1a1a") : "#0d0d0d");
             dayCell.setStyle(String.format(
                 "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
                 bgColor, borderColor, borderWidth
@@ -1057,28 +1073,29 @@ public class ScheduleController {
         VBox content = new VBox(15);
         content.setPadding(new Insets(20));
         content.setPrefWidth(600);
+        content.setStyle("-fx-background-color: #1a1a1a;");
         
         for (ScheduleItem item : items) {
             VBox sessionBox = new VBox(10);
             sessionBox.setPadding(new Insets(15));
-            sessionBox.setStyle("-fx-background-color: linear-gradient(to bottom, #f8f9fa, #ffffff); -fx-border-color: #d0d0d0; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.05), 3, 0, 0, 1);");
+            sessionBox.setStyle("-fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.3), 5, 0, 0, 2);");
             
             // Thời gian
             HBox timeBox = new HBox(8);
             timeBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             Label timeIcon = new Label("🕐");
             Label timeLabel = new Label(item.getTimeRange());
-            timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #2980b9; -fx-background-color: #e8f4f8; -fx-padding: 6 14 6 14; -fx-background-radius: 6;");
+            timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #00ff88; -fx-background-color: #003d1a; -fx-padding: 6 14 6 14; -fx-background-radius: 6; -fx-border-color: #00ff88; -fx-border-width: 1;");
             timeBox.getChildren().addAll(timeIcon, timeLabel);
             
             // Môn học
             Label subjectLabel = new Label("📚 " + item.getSubject());
-            subjectLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2c3e50; -fx-padding: 5 0 5 0;");
+            subjectLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #ffffff; -fx-padding: 5 0 5 0;");
             
             // Mã môn học (nếu có)
             if (item.getCourseCode() != null && !item.getCourseCode().isEmpty()) {
                 Label codeLabel = new Label("🔢 Mã môn: " + item.getCourseCode());
-                codeLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555555;");
+                codeLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #99a8b8;");
                 sessionBox.getChildren().add(codeLabel);
             }
             
@@ -1086,12 +1103,12 @@ public class ScheduleController {
             VBox infoBox = new VBox(8);
             if (item.getRoom() != null && !item.getRoom().isEmpty()) {
                 Label roomLabel = new Label("📍 Phòng học: " + item.getRoom());
-                roomLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555555;");
+                roomLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #99a8b8;");
                 infoBox.getChildren().add(roomLabel);
             }
             if (item.getTeacher() != null && !item.getTeacher().isEmpty()) {
                 Label teacherLabel = new Label("👤 Giảng viên: " + item.getTeacher());
-                teacherLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555555;");
+                teacherLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #99a8b8;");
                 infoBox.getChildren().add(teacherLabel);
             }
             
@@ -1106,11 +1123,11 @@ public class ScheduleController {
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefHeight(400);
-        scrollPane.setStyle("-fx-background-color: transparent;");
+        scrollPane.setStyle("-fx-background-color: #1a1a1a;");
         
         dialog.getDialogPane().setContent(scrollPane);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
-        dialog.getDialogPane().setStyle("-fx-background-color: #f5f5f5;");
+        dialog.getDialogPane().setStyle("-fx-background-color: #1a1a1a;");
         
         dialog.showAndWait();
     }
@@ -1118,20 +1135,20 @@ public class ScheduleController {
     private VBox createMonthView(String monthKey, List<ScheduleItem> items) {
         VBox monthBox = new VBox(15);
         monthBox.setPadding(new Insets(25));
-        monthBox.setStyle("-fx-background-color: linear-gradient(to bottom, #ffffff, #f8f9fa); -fx-border-color: #3498db; -fx-border-radius: 12; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(52,152,219,0.2), 10, 0, 0, 3);");
+        monthBox.setStyle("-fx-background-color: linear-gradient(to bottom, #1a1a1a, #0d0d0d); -fx-border-color: #00d4ff; -fx-border-radius: 12; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.3), 10, 0, 0, 3);");
         
         // Header với tháng và năm
         HBox headerBox = new HBox();
         headerBox.setAlignment(javafx.geometry.Pos.CENTER);
         headerBox.setPadding(new Insets(0, 0, 10, 0));
         Label monthLabel = new Label("📅 Tháng " + monthKey);
-        monthLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2980b9; -fx-padding: 12px; -fx-background-color: linear-gradient(to bottom, #e8f4f8, #d6eaf8); -fx-background-radius: 8;");
+        monthLabel.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00d4ff; -fx-padding: 12px; -fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-background-radius: 8;");
         headerBox.getChildren().add(monthLabel);
         monthBox.getChildren().add(headerBox);
         
         // Separator
         Separator separator = new Separator();
-        separator.setStyle("-fx-background-color: linear-gradient(to right, transparent, #3498db, transparent); -fx-pref-height: 2;");
+        separator.setStyle("-fx-background-color: linear-gradient(to right, transparent, #00d4ff, transparent); -fx-pref-height: 2;");
         monthBox.getChildren().add(separator);
         
         // Group by date
@@ -1156,15 +1173,15 @@ public class ScheduleController {
     private VBox createDayView(LocalDate date, List<ScheduleItem> items) {
         VBox dayBox = new VBox(10);
         dayBox.setPadding(new Insets(15));
-        dayBox.setStyle("-fx-background-color: #ffffff; -fx-border-color: #e0e0e0; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.05), 3, 0, 0, 1);");
+        dayBox.setStyle("-fx-background-color: #2a2a2a; -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(one-pass-box, rgba(0,212,255,0.2), 3, 0, 0, 1);");
         
         // Header với ngày và số lượng buổi học
         HBox headerBox = new HBox(12);
         headerBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         Label dateLabel = new Label("📆 " + formatDate(date));
-        dateLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 17px; -fx-text-fill: #2c3e50;");
+        dateLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 17px; -fx-text-fill: #ffffff;");
         Label countLabel = new Label("(" + items.size() + " buổi)");
-        countLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #7f8c8d; -fx-background-color: #f0f0f0; -fx-padding: 4 10 4 10; -fx-background-radius: 12;");
+        countLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #00ff88; -fx-background-color: #003d1a; -fx-padding: 4 10 4 10; -fx-background-radius: 12; -fx-border-color: #00ff88; -fx-border-width: 1;");
         headerBox.getChildren().addAll(dateLabel, countLabel);
         dayBox.getChildren().add(headerBox);
         
@@ -1180,27 +1197,27 @@ public class ScheduleController {
         for (ScheduleItem item : items) {
             VBox sessionBox = new VBox(8);
             sessionBox.setPadding(new Insets(12));
-            sessionBox.setStyle("-fx-background-color: linear-gradient(to bottom, #f8f9fa, #ffffff); -fx-border-color: #d0d0d0; -fx-border-radius: 6; -fx-border-width: 1; -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.03), 2, 0, 0, 1);");
+            sessionBox.setStyle("-fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-border-color: #00d4ff; -fx-border-radius: 6; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.3), 5, 0, 0, 2);");
             
             // Thời gian
             HBox timeBox = new HBox(8);
             timeBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             Label timeIcon = new Label("🕐");
             Label timeLabel = new Label(item.getTimeRange());
-            timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2980b9; -fx-background-color: #e8f4f8; -fx-padding: 5 12 5 12; -fx-background-radius: 6;");
+            timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #00ff88; -fx-background-color: #003d1a; -fx-padding: 5 12 5 12; -fx-background-radius: 6; -fx-border-color: #00ff88; -fx-border-width: 1;");
             timeBox.getChildren().addAll(timeIcon, timeLabel);
             
             // Môn học
             Label subjectLabel = new Label("📚 " + item.getSubject());
-            subjectLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #2c3e50; -fx-padding: 4 0 4 0;");
+            subjectLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #ffffff; -fx-padding: 4 0 4 0;");
             
             // Thông tin bổ sung
             HBox infoBox = new HBox(20);
             infoBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             Label roomLabel = new Label("📍 " + item.getRoom());
-            roomLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555555;");
+            roomLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #99a8b8;");
             Label teacherLabel = new Label("👤 " + item.getTeacher());
-            teacherLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #555555;");
+            teacherLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #99a8b8;");
             infoBox.getChildren().addAll(roomLabel, teacherLabel);
             
             sessionBox.getChildren().addAll(timeBox, subjectLabel, infoBox);
@@ -1226,7 +1243,8 @@ public class ScheduleController {
             MainScreenController controller = loader.getController();
             controller.setAuthToken(authToken);
             
-            Stage stage = (Stage) backButton.getScene().getWindow();
+            // Get stage from any available node
+            Stage stage = (Stage) statusLabel.getScene().getWindow();
             stage.setScene(new Scene(root, 1200, 800));
             stage.setTitle("KMA Legend Desktop - Trang chủ");
             

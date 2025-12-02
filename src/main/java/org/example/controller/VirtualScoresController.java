@@ -77,6 +77,9 @@ public class VirtualScoresController {
     private Button conversionTableButton;
     
     @FXML
+    private Button cpaCalculatorButton;
+    
+    @FXML
     private Button saveButton;
     
     @FXML
@@ -305,6 +308,11 @@ public class VirtualScoresController {
         // Setup conversion table button
         if (conversionTableButton != null) {
             conversionTableButton.setOnAction(e -> showGradeConversionTable());
+        }
+        
+        // Setup CPA calculator button
+        if (cpaCalculatorButton != null) {
+            cpaCalculatorButton.setOnAction(e -> showCPACalculator());
         }
         
         // Setup save button
@@ -830,24 +838,27 @@ public class VirtualScoresController {
     @FXML
     private void showGradeConversionTable() {
         Stage popupStage = new Stage();
-        popupStage.initModality(Modality.APPLICATION_MODAL);
-        popupStage.initStyle(StageStyle.UTILITY);
+        // Dùng WINDOW_MODAL thay vì APPLICATION_MODAL để tránh trigger events với các window khác
+        popupStage.initModality(Modality.WINDOW_MODAL);
+        popupStage.initOwner(conversionTableButton.getScene().getWindow());
+        popupStage.initStyle(StageStyle.DECORATED);
         popupStage.setTitle("Bảng quy đổi điểm");
+        popupStage.setResizable(false);
         
         VBox root = new VBox(15);
         root.setPadding(new Insets(25));
-        root.setStyle("-fx-background-color: white;");
+        root.setStyle("-fx-background-color: #1a1a1a;");
         
         Label titleLabel = new Label("📊 Bảng quy đổi điểm");
-        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
+        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;");
         
         // Tạo bảng
         VBox tableContainer = new VBox(0);
-        tableContainer.setStyle("-fx-border-color: #e0e0e0; -fx-border-radius: 8px; -fx-background-radius: 8px;");
+        tableContainer.setStyle("-fx-border-color: #2a2a2a; -fx-border-radius: 8px; -fx-background-radius: 8px;");
         
         // Header
         HBox headerRow = new HBox();
-        headerRow.setStyle("-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-background-radius: 8px 8px 0 0;");
+        headerRow.setStyle("-fx-background-color: #2254c9; -fx-background-radius: 8px 8px 0 0;");
         headerRow.setPadding(new Insets(12));
         headerRow.setSpacing(10);
         
@@ -879,14 +890,14 @@ public class VirtualScoresController {
             dataRow.setPadding(new Insets(10, 12, 10, 12));
             dataRow.setSpacing(10);
             if (i % 2 == 0) {
-                dataRow.setStyle("-fx-background-color: #f8f9fa;");
+                dataRow.setStyle("-fx-background-color: #1d1d1d;");
             } else {
-                dataRow.setStyle("-fx-background-color: white;");
+                dataRow.setStyle("-fx-background-color: #1a1a1a;");
             }
             
             for (String cell : data[i]) {
                 Label cellLabel = new Label(cell);
-                cellLabel.setStyle("-fx-text-fill: #2c3e50; -fx-font-size: 12px;");
+                cellLabel.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
                 cellLabel.setPrefWidth(120);
                 dataRow.getChildren().add(cellLabel);
             }
@@ -896,19 +907,504 @@ public class VirtualScoresController {
         
         // Note
         Label noteLabel = new Label("💡 Lưu ý: GPA tính theo các môn đã chọn (không tính Giáo dục thể chất)");
-        noteLabel.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 11px; -fx-wrap-text: true;");
+        noteLabel.setStyle("-fx-text-fill: #99a8b8; -fx-font-size: 11px; -fx-wrap-text: true;");
         noteLabel.setMaxWidth(500);
         
         Button closeButton = new Button("Đóng");
-        closeButton.setStyle("-fx-background-color: #667eea; -fx-text-fill: white; -fx-pref-width: 100px; -fx-pref-height: 35px; -fx-background-radius: 5px; -fx-cursor: hand;");
+        closeButton.setStyle("-fx-background-color: linear-gradient(to right, #3F5EFB, #FC466B); -fx-text-fill: white; -fx-pref-width: 100px; -fx-pref-height: 35px; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: 500;");
         closeButton.setOnAction(e -> popupStage.close());
+        
+        closeButton.setOnMouseEntered(e -> {
+            closeButton.setStyle("-fx-background-color: linear-gradient(to right, #833AB4, #FD1D1D, #FCB045); -fx-text-fill: white; -fx-pref-width: 100px; -fx-pref-height: 35px; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: 500;");
+        });
+        
+        closeButton.setOnMouseExited(e -> {
+            closeButton.setStyle("-fx-background-color: linear-gradient(to right, #3F5EFB, #FC466B); -fx-text-fill: white; -fx-pref-width: 100px; -fx-pref-height: 35px; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: 500;");
+        });
         
         root.getChildren().addAll(titleLabel, tableContainer, noteLabel, closeButton);
         root.setAlignment(Pos.CENTER);
         
         Scene scene = new Scene(root, 550, 600);
         popupStage.setScene(scene);
+        popupStage.showAndWait();
+    }
+    
+    @FXML
+    private void showCPACalculator() {
+        // Tính toán thống kê hiện tại
+        int totalSubjects = scoresTable.getItems().size();
+        int failedSubjects = 0;
+        int totalCompletedCredits = 0;
+        double currentTotalPoints = 0.0;
+        int currentTotalCredits = 0;
+        
+        for (VirtualScoreItem item : scoresTable.getItems()) {
+            if (!item.isPhysicalEducation() && item.getScoreOverall() > 0) {
+                if (item.checkFailed()) {
+                    failedSubjects++;
+                } else {
+                    totalCompletedCredits += item.getSubjectCredit();
+                    double score4 = ScoreItem.convertToScale4(item.getScoreOverall());
+                    currentTotalPoints += score4 * item.getSubjectCredit();
+                    currentTotalCredits += item.getSubjectCredit();
+                }
+            }
+        }
+        
+        int completedSubjects = totalSubjects - failedSubjects;
+        double currentGPA = currentTotalCredits > 0 ? currentTotalPoints / currentTotalCredits : 0.0;
+        
+        // Tạo final variables để sử dụng trong lambda
+        final int finalTotalCompletedCredits = totalCompletedCredits;
+        final double finalCurrentTotalPoints = currentTotalPoints;
+        final int finalCurrentTotalCredits = currentTotalCredits;
+        
+        Stage popupStage = new Stage();
+        popupStage.initModality(Modality.WINDOW_MODAL);
+        popupStage.initOwner(cpaCalculatorButton.getScene().getWindow());
+        popupStage.initStyle(StageStyle.DECORATED);
+        popupStage.setTitle("CPA Dự Kiến");
         popupStage.setResizable(false);
+        
+        VBox root = new VBox(20);
+        root.setPadding(new Insets(30));
+        root.setStyle("-fx-background-color: #1a1a1a;");
+        
+        Label titleLabel = new Label("🎯 CPA Dự Kiến");
+        titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;");
+        
+        // Thông tin hiện tại
+        VBox currentInfoBox = new VBox(10);
+        currentInfoBox.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 8px; -fx-padding: 15px;");
+        Label currentInfoTitle = new Label("📊 Thông tin hiện tại:");
+        currentInfoTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: white;");
+        Label currentInfoText = new Label(String.format(
+            "Số môn hoàn thành: %d môn\nSố môn trượt: %d môn\nTổng số tín chỉ hoàn thành: %d tín chỉ\nGPA hiện tại: %.2f",
+            completedSubjects, failedSubjects, finalTotalCompletedCredits, currentGPA
+        ));
+        currentInfoText.setStyle("-fx-font-size: 13px; -fx-text-fill: #e0e0e0; -fx-line-spacing: 5px;");
+        currentInfoBox.getChildren().addAll(currentInfoTitle, currentInfoText);
+        
+        // Input fields
+        VBox inputBox = new VBox(15);
+        inputBox.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 8px; -fx-padding: 20px;");
+        
+        Label inputTitle = new Label("📝 Nhập thông tin:");
+        inputTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: white;");
+        
+        HBox totalCreditsBox = new HBox(10);
+        totalCreditsBox.setAlignment(Pos.CENTER_LEFT);
+        Label totalCreditsLabel = new Label("Tổng số tín chỉ cần đạt:");
+        totalCreditsLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: white; -fx-pref-width: 200px;");
+        TextField totalCreditsField = new TextField();
+        totalCreditsField.setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: white; -fx-border-color: #3a3a3a; -fx-border-radius: 5px; -fx-padding: 8px; -fx-pref-width: 150px;");
+        totalCreditsBox.getChildren().addAll(totalCreditsLabel, totalCreditsField);
+        
+        HBox targetCPABox = new HBox(10);
+        targetCPABox.setAlignment(Pos.CENTER_LEFT);
+        Label targetCPALabel = new Label("CPA mong muốn:");
+        targetCPALabel.setStyle("-fx-font-size: 13px; -fx-text-fill: white; -fx-pref-width: 200px;");
+        TextField targetCPAField = new TextField();
+        targetCPAField.setStyle("-fx-background-color: #1a1a1a; -fx-text-fill: white; -fx-border-color: #3a3a3a; -fx-border-radius: 5px; -fx-padding: 8px; -fx-pref-width: 150px;");
+        targetCPABox.getChildren().addAll(targetCPALabel, targetCPAField);
+        
+        // Chọn loại môn
+        HBox creditTypeBox = new HBox(10);
+        creditTypeBox.setAlignment(Pos.CENTER_LEFT);
+        Label creditTypeLabel = new Label("Loại môn cần đạt:");
+        creditTypeLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: white; -fx-pref-width: 200px;");
+        ToggleGroup creditTypeGroup = new ToggleGroup();
+        RadioButton credit2Button = new RadioButton("2 tín chỉ");
+        credit2Button.setToggleGroup(creditTypeGroup);
+        credit2Button.setSelected(true);
+        credit2Button.setStyle("-fx-text-fill: white;");
+        RadioButton credit3Button = new RadioButton("3 tín chỉ");
+        credit3Button.setToggleGroup(creditTypeGroup);
+        credit3Button.setStyle("-fx-text-fill: white;");
+        HBox radioBox = new HBox(15);
+        radioBox.getChildren().addAll(credit2Button, credit3Button);
+        creditTypeBox.getChildren().addAll(creditTypeLabel, radioBox);
+        
+        // Slider khả năng
+        VBox sliderBox = new VBox(10);
+        Label sliderLabel = new Label("Chỉ số khả năng (mức tối thiểu bạn có thể đạt, có thể đạt cao hơn):");
+        sliderLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: white;");
+        
+        Slider abilitySlider = new Slider(0, 7, 5);
+        abilitySlider.setShowTickLabels(true);
+        abilitySlider.setShowTickMarks(true);
+        abilitySlider.setMajorTickUnit(1);
+        abilitySlider.setMinorTickCount(0);
+        abilitySlider.setSnapToTicks(true);
+        abilitySlider.setPrefWidth(560);
+        abilitySlider.setMaxWidth(560);
+        
+        // Labels cho slider - căn đều với các mốc 0-7
+        String[] gradeLabels = {"D", "D+", "C", "C+", "B", "B+", "A", "A+"};
+        HBox sliderLabelsBox = new HBox();
+        sliderLabelsBox.setPrefWidth(560);
+        sliderLabelsBox.setMaxWidth(560);
+        sliderLabelsBox.setAlignment(Pos.CENTER);
+        // Tính spacing để căn đều: với 8 labels và width 560px, spacing khoảng 57px
+        // Sử dụng cách đơn giản: đặt mỗi label vào vị trí tương ứng
+        for (int i = 0; i < gradeLabels.length; i++) {
+            Label gradeLabel = new Label(gradeLabels[i]);
+            gradeLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #99a8b8;");
+            gradeLabel.setPrefWidth(70); // 560 / 8 = 70px mỗi label
+            gradeLabel.setAlignment(Pos.CENTER);
+            sliderLabelsBox.getChildren().add(gradeLabel);
+        }
+        
+        Label sliderValueLabel = new Label("B+");
+        sliderValueLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #3F5EFB;");
+        
+        abilitySlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            int index = (int) Math.round(newVal.doubleValue());
+            if (index >= 0 && index < gradeLabels.length) {
+                sliderValueLabel.setText(gradeLabels[index]);
+            }
+        });
+        
+        sliderBox.getChildren().addAll(sliderLabel, abilitySlider, sliderLabelsBox, sliderValueLabel);
+        
+        inputBox.getChildren().addAll(inputTitle, totalCreditsBox, targetCPABox, creditTypeBox, sliderBox);
+        
+        // Kết quả
+        VBox resultBox = new VBox(10);
+        resultBox.setStyle("-fx-background-color: #2a2a2a; -fx-background-radius: 8px; -fx-padding: 20px;");
+        Label resultTitle = new Label("📈 Kết quả:");
+        resultTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: white;");
+        
+        // ScrollPane để chứa kết quả
+        ScrollPane resultScrollPane = new ScrollPane();
+        resultScrollPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
+        resultScrollPane.setFitToWidth(true);
+        resultScrollPane.setPrefHeight(250);
+        resultScrollPane.setMaxHeight(350);
+        
+        VBox resultContent = new VBox(10);
+        resultContent.setStyle("-fx-background-color: transparent;");
+        Label resultText = new Label("Nhập thông tin và bấm 'Tính toán' để xem kết quả");
+        resultText.setStyle("-fx-font-size: 13px; -fx-text-fill: #99a8b8; -fx-wrap-text: true;");
+        resultText.setMaxWidth(500);
+        resultContent.getChildren().add(resultText);
+        resultScrollPane.setContent(resultContent);
+        
+        resultBox.getChildren().addAll(resultTitle, resultScrollPane);
+        
+        // Biến final để sử dụng trong lambda
+        final VBox finalResultContent = resultContent;
+        
+        // Buttons
+        HBox buttonBox = new HBox(15);
+        buttonBox.setAlignment(Pos.CENTER);
+        
+        Button calculateButton = new Button("Tính toán");
+        calculateButton.setStyle("-fx-background-color: linear-gradient(to right, #3F5EFB, #FC466B); -fx-text-fill: white; -fx-pref-width: 120px; -fx-pref-height: 40px; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: 500;");
+        calculateButton.setOnMouseEntered(e -> {
+            calculateButton.setStyle("-fx-background-color: linear-gradient(to right, #833AB4, #FD1D1D, #FCB045); -fx-text-fill: white; -fx-pref-width: 120px; -fx-pref-height: 40px; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: 500;");
+        });
+        calculateButton.setOnMouseExited(e -> {
+            calculateButton.setStyle("-fx-background-color: linear-gradient(to right, #3F5EFB, #FC466B); -fx-text-fill: white; -fx-pref-width: 120px; -fx-pref-height: 40px; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: 500;");
+        });
+        
+        Button closeButton = new Button("Đóng");
+        closeButton.setStyle("-fx-background-color: #3a3a3a; -fx-text-fill: white; -fx-pref-width: 120px; -fx-pref-height: 40px; -fx-background-radius: 5px; -fx-cursor: hand;");
+        closeButton.setOnAction(e -> popupStage.close());
+        
+        buttonBox.getChildren().addAll(calculateButton, closeButton);
+        
+        // Tính toán khi bấm nút
+        calculateButton.setOnAction(e -> {
+            try {
+                int totalCreditsNeeded = Integer.parseInt(totalCreditsField.getText().trim());
+                double targetCPA = Double.parseDouble(targetCPAField.getText().trim());
+                int selectedCredit = credit2Button.isSelected() ? 2 : 3;
+                int abilityIndex = (int) Math.round(abilitySlider.getValue());
+                
+                if (totalCreditsNeeded <= 0 || targetCPA < 0 || targetCPA > 4.0) {
+                    resultText.setText("❌ Vui lòng nhập giá trị hợp lệ!");
+                    resultText.setStyle("-fx-font-size: 13px; -fx-text-fill: #ff5252; -fx-wrap-text: true;");
+                    return;
+                }
+                
+                // Tính toán
+                int remainingCredits = totalCreditsNeeded - finalTotalCompletedCredits;
+                if (remainingCredits <= 0) {
+                    resultText.setText("✅ Bạn đã đạt đủ số tín chỉ cần thiết!");
+                    resultText.setStyle("-fx-font-size: 13px; -fx-text-fill: #4caf50; -fx-wrap-text: true;");
+                    return;
+                }
+                
+                // Tính số điểm cần đạt
+                double totalPointsNeeded = targetCPA * totalCreditsNeeded;
+                double remainingPointsNeeded = totalPointsNeeded - finalCurrentTotalPoints;
+                
+                if (remainingPointsNeeded < 0) {
+                    resultText.setText("✅ Bạn đã đạt được CPA mong muốn!");
+                    resultText.setStyle("-fx-font-size: 13px; -fx-text-fill: #4caf50; -fx-wrap-text: true;");
+                    return;
+                }
+                
+                // Tính số môn cần đạt
+                int numSubjectsNeeded = (int) Math.ceil((double) remainingCredits / selectedCredit);
+                
+                // Điểm thang 4 tương ứng với khả năng (mức tối thiểu)
+                double[] gradePoints = {1.0, 1.5, 2.0, 2.4, 3.0, 3.5, 3.8, 4.0};
+                double abilityPoint = gradePoints[abilityIndex];
+                
+                // Kiểm tra xem có thể đạt được CPA không (nếu tất cả đạt A+)
+                double maxPossiblePoints = remainingCredits * 4.0;
+                if (remainingPointsNeeded > maxPossiblePoints) {
+                    resultText.setText("❌ Không thể đạt được CPA này! Ngay cả khi đạt A+ (4.0) cho tất cả các môn còn lại, bạn vẫn không thể đạt được CPA mong muốn.");
+                    resultText.setStyle("-fx-font-size: 13px; -fx-text-fill: #ff5252; -fx-wrap-text: true;");
+                    return;
+                }
+                
+                // Kiểm tra xem với khả năng tối thiểu (nếu tất cả đạt mức khả năng) có đạt được không
+                double minPossiblePoints = remainingCredits * abilityPoint;
+                
+                // Tính phân bổ điểm
+                int numSubjectsAtAbility = 0;
+                int numSubjectsAtA = 0;
+                int numSubjectsAtAPlus = 0;
+                
+                if (remainingPointsNeeded <= minPossiblePoints) {
+                    // Nếu tất cả môn ở mức khả năng đã đủ, phân bổ tất cả ở mức khả năng
+                    numSubjectsAtAbility = numSubjectsNeeded;
+                } else {
+                    // Cần một số môn đạt cao hơn mức khả năng
+                    // Tính xem cần bao nhiêu điểm từ A/A+ để bù đắp
+                    double pointsNeededFromHighGrades = remainingPointsNeeded - minPossiblePoints;
+                    
+                    // Thử tìm phân bổ tối ưu: nhiều môn ở mức khả năng, còn lại ở A/A+
+                    boolean foundSolution = false;
+                    
+                    // Thử từ nhiều môn ở mức khả năng nhất có thể
+                    for (int nAbility = numSubjectsNeeded; nAbility >= 0; nAbility--) {
+                        int remainingSubjects = numSubjectsNeeded - nAbility;
+                        int remainingCreditsForHigh = remainingCredits - (nAbility * selectedCredit);
+                        
+                        if (remainingCreditsForHigh < 0) continue;
+                        if (remainingCreditsForHigh == 0 && nAbility > 0) {
+                            // Tất cả tín chỉ đã được phân bổ cho mức khả năng
+                            double totalPoints = nAbility * abilityPoint * selectedCredit;
+                            if (Math.abs(totalPoints - remainingPointsNeeded) < 0.1) {
+                                numSubjectsAtAbility = nAbility;
+                                foundSolution = true;
+                                break;
+                            }
+                            continue;
+                        }
+                        
+                        // Thử phân bổ giữa A và A+ cho số môn còn lại
+                        int maxSubjectsForHigh = (int) Math.ceil((double) remainingCreditsForHigh / selectedCredit);
+                        for (int nA = 0; nA <= maxSubjectsForHigh; nA++) {
+                            int nAPlus = maxSubjectsForHigh - nA;
+                            int creditsA = nA * selectedCredit;
+                            int creditsAPlus = nAPlus * selectedCredit;
+                            
+                            if (creditsA + creditsAPlus != remainingCreditsForHigh) continue;
+                            
+                            double totalPoints = nAbility * abilityPoint * selectedCredit +
+                                                nA * 3.8 * selectedCredit +
+                                                nAPlus * 4.0 * selectedCredit;
+                            
+                            // Kiểm tra xem có đạt được điểm cần thiết không (cho phép sai số nhỏ)
+                            if (Math.abs(totalPoints - remainingPointsNeeded) < 0.1) {
+                                numSubjectsAtAbility = nAbility;
+                                numSubjectsAtA = nA;
+                                numSubjectsAtAPlus = nAPlus;
+                                foundSolution = true;
+                                break;
+                            }
+                        }
+                        if (foundSolution) break;
+                    }
+                    
+                    if (!foundSolution) {
+                        // Nếu không tìm được giải pháp chính xác, tính gần đúng
+                        // Ưu tiên nhiều môn ở mức khả năng
+                        numSubjectsAtAbility = (int) Math.floor((double) remainingCredits / selectedCredit);
+                        int remainingCreditsForHigh = remainingCredits - (numSubjectsAtAbility * selectedCredit);
+                        int remainingSubjectsForHigh = (int) Math.ceil((double) remainingCreditsForHigh / selectedCredit);
+                        
+                        double pointsFromAbility = numSubjectsAtAbility * abilityPoint * selectedCredit;
+                        double remainingPointsForHigh = remainingPointsNeeded - pointsFromAbility;
+                        
+                        if (remainingPointsForHigh > 0 && remainingSubjectsForHigh > 0) {
+                            // Phân bổ giữa A và A+
+                            double avgNeededForHigh = remainingPointsForHigh / remainingCreditsForHigh;
+                            if (avgNeededForHigh >= 3.9) {
+                                // Cần nhiều A+
+                                numSubjectsAtAPlus = remainingSubjectsForHigh;
+                                numSubjectsAtA = 0;
+                            } else {
+                                // Phân bổ giữa A và A+
+                                numSubjectsAtAPlus = (int) Math.ceil((remainingPointsForHigh - remainingCreditsForHigh * 3.8) / (selectedCredit * 0.2));
+                                if (numSubjectsAtAPlus > remainingSubjectsForHigh) {
+                                    numSubjectsAtAPlus = remainingSubjectsForHigh;
+                                }
+                                numSubjectsAtA = remainingSubjectsForHigh - numSubjectsAtAPlus;
+                            }
+                        }
+                    }
+                }
+                
+                // Kiểm tra lại
+                int totalCreditsCheck = numSubjectsAtAPlus * selectedCredit + numSubjectsAtA * selectedCredit + numSubjectsAtAbility * selectedCredit;
+                double totalPointsCheck = numSubjectsAtAPlus * 4.0 * selectedCredit + 
+                                        numSubjectsAtA * 3.8 * selectedCredit + 
+                                        numSubjectsAtAbility * abilityPoint * selectedCredit;
+                double finalCPA = (finalCurrentTotalPoints + totalPointsCheck) / totalCreditsNeeded;
+                
+                // Kiểm tra xem có thể đạt được CPA với khả năng hiện tại không
+                if (remainingPointsNeeded > minPossiblePoints) {
+                    // Cần một số môn đạt cao hơn mức khả năng
+                    // Kiểm tra xem phân bổ có hợp lý không
+                    double actualPoints = totalPointsCheck;
+                    if (actualPoints < remainingPointsNeeded - 0.5) {
+                        // Không thể đạt được với khả năng này
+                        finalResultContent.getChildren().clear();
+                        Label errorLabel = new Label(String.format(
+                            "❌ Với khả năng học ở mức %s (%.1f), bạn không thể đạt được CPA mục tiêu %.2f!\n\n" +
+                            "Để đạt được CPA này, bạn cần:\n" +
+                            "• Nâng cao khả năng học lên mức cao hơn, hoặc\n" +
+                            "• Giảm CPA mục tiêu xuống mức thấp hơn.\n\n" +
+                            "Với khả năng hiện tại, CPA tối đa có thể đạt được là: %.2f",
+                            gradeLabels[abilityIndex], abilityPoint, targetCPA,
+                            (finalCurrentTotalPoints + minPossiblePoints) / totalCreditsNeeded
+                        ));
+                        errorLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #ff5252; -fx-wrap-text: true;");
+                        errorLabel.setMaxWidth(500);
+                        finalResultContent.getChildren().add(errorLabel);
+                        return;
+                    }
+                }
+                
+                // Tạo bảng kết quả rõ ràng
+                finalResultContent.getChildren().clear();
+                
+                // Thông tin tổng quan
+                VBox summaryBox = new VBox(8);
+                summaryBox.setStyle("-fx-background-color: #1a1a1a; -fx-background-radius: 5px; -fx-padding: 12px;");
+                Label summaryTitle = new Label("📊 Thông tin tổng quan:");
+                summaryTitle.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: white;");
+                Label summaryText = new Label(String.format(
+                    "Số tín chỉ còn lại cần đạt: %d tín chỉ\n" +
+                    "Số môn cần đạt (môn %d tín chỉ/môn): %d môn",
+                    remainingCredits, selectedCredit, numSubjectsNeeded
+                ));
+                summaryText.setStyle("-fx-font-size: 12px; -fx-text-fill: #e0e0e0; -fx-line-spacing: 5px;");
+                summaryBox.getChildren().addAll(summaryTitle, summaryText);
+                
+                // Bảng phân bổ điểm
+                VBox tableBox = new VBox(0);
+                tableBox.setStyle("-fx-background-color: #1a1a1a; -fx-background-radius: 5px; -fx-border-color: #3a3a3a; -fx-border-radius: 5px;");
+                
+                // Header
+                HBox headerRow = new HBox();
+                headerRow.setStyle("-fx-background-color: #2254c9; -fx-background-radius: 5px 5px 0 0; -fx-padding: 12px;");
+                headerRow.setSpacing(10);
+                
+                String[] headers = {"Mức điểm", "Số môn", "Tín chỉ/môn", "Tổng tín chỉ", "Điểm thang 4"};
+                double[] headerWidths = {120.0, 80.0, 100.0, 100.0, 100.0};
+                for (int i = 0; i < headers.length; i++) {
+                    Label headerLabel = new Label(headers[i]);
+                    headerLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;");
+                    headerLabel.setPrefWidth(headerWidths[i]);
+                    headerLabel.setAlignment(Pos.CENTER);
+                    headerRow.getChildren().add(headerLabel);
+                }
+                tableBox.getChildren().add(headerRow);
+                
+                // Data rows
+                int rowIndex = 0;
+                if (numSubjectsAtAPlus > 0) {
+                    HBox dataRow = createCPADataRow("A+", numSubjectsAtAPlus, selectedCredit, 4.0, rowIndex % 2 == 0);
+                    tableBox.getChildren().add(dataRow);
+                    rowIndex++;
+                }
+                if (numSubjectsAtA > 0) {
+                    HBox dataRow = createCPADataRow("A", numSubjectsAtA, selectedCredit, 3.8, rowIndex % 2 == 0);
+                    tableBox.getChildren().add(dataRow);
+                    rowIndex++;
+                }
+                if (numSubjectsAtAbility > 0) {
+                    HBox dataRow = createCPADataRow(gradeLabels[abilityIndex], numSubjectsAtAbility, selectedCredit, abilityPoint, rowIndex % 2 == 0);
+                    tableBox.getChildren().add(dataRow);
+                    rowIndex++;
+                }
+                
+                // Tổng cộng
+                HBox totalRow = new HBox();
+                totalRow.setStyle("-fx-background-color: #2a4a7a; -fx-padding: 12px; -fx-background-radius: 0 0 5px 5px;");
+                totalRow.setSpacing(10);
+                
+                Label totalLabel1 = new Label("TỔNG CỘNG");
+                totalLabel1.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;");
+                totalLabel1.setPrefWidth(120.0);
+                totalLabel1.setAlignment(Pos.CENTER);
+                
+                Label totalLabel2 = new Label(String.valueOf(numSubjectsNeeded));
+                totalLabel2.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;");
+                totalLabel2.setPrefWidth(80.0);
+                totalLabel2.setAlignment(Pos.CENTER);
+                
+                Label totalLabel3 = new Label(String.valueOf(selectedCredit));
+                totalLabel3.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;");
+                totalLabel3.setPrefWidth(100.0);
+                totalLabel3.setAlignment(Pos.CENTER);
+                
+                Label totalLabel4 = new Label(String.valueOf(totalCreditsCheck));
+                totalLabel4.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;");
+                totalLabel4.setPrefWidth(100.0);
+                totalLabel4.setAlignment(Pos.CENTER);
+                
+                Label totalLabel5 = new Label(String.format("%.1f", totalPointsCheck / totalCreditsCheck));
+                totalLabel5.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px;");
+                totalLabel5.setPrefWidth(100.0);
+                totalLabel5.setAlignment(Pos.CENTER);
+                
+                totalRow.getChildren().addAll(totalLabel1, totalLabel2, totalLabel3, totalLabel4, totalLabel5);
+                tableBox.getChildren().add(totalRow);
+                
+                // CPA kết quả
+                VBox cpaBox = new VBox(8);
+                cpaBox.setStyle("-fx-background-color: #1a3a1a; -fx-background-radius: 5px; -fx-padding: 15px; -fx-border-color: #4caf50; -fx-border-width: 2px; -fx-border-radius: 5px;");
+                Label cpaTitle = new Label("✅ CPA dự kiến khi đạt được:");
+                cpaTitle.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #4caf50;");
+                Label cpaValue = new Label(String.format("%.2f / %.2f", finalCPA, targetCPA));
+                cpaValue.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #4caf50;");
+                Label cpaNote = new Label(String.format("(CPA mục tiêu: %.2f)", targetCPA));
+                cpaNote.setStyle("-fx-font-size: 11px; -fx-text-fill: #99a8b8;");
+                cpaBox.getChildren().addAll(cpaTitle, cpaValue, cpaNote);
+                
+                finalResultContent.getChildren().addAll(summaryBox, tableBox, cpaBox);
+                finalResultContent.setSpacing(15);
+                
+            } catch (NumberFormatException ex) {
+                finalResultContent.getChildren().clear();
+                Label errorLabel = new Label("❌ Vui lòng nhập số hợp lệ!");
+                errorLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #ff5252; -fx-wrap-text: true;");
+                errorLabel.setMaxWidth(500);
+                finalResultContent.getChildren().add(errorLabel);
+            } catch (Exception ex) {
+                finalResultContent.getChildren().clear();
+                Label errorLabel = new Label("❌ Lỗi: " + ex.getMessage());
+                errorLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #ff5252; -fx-wrap-text: true;");
+                errorLabel.setMaxWidth(500);
+                finalResultContent.getChildren().add(errorLabel);
+                ex.printStackTrace();
+            }
+        });
+        
+        root.getChildren().addAll(titleLabel, currentInfoBox, inputBox, resultBox, buttonBox);
+        root.setAlignment(Pos.CENTER);
+        
+        Scene scene = new Scene(root, 600, 800);
+        popupStage.setScene(scene);
         popupStage.showAndWait();
     }
     
@@ -1024,6 +1520,47 @@ public class VirtualScoresController {
         } else if (selectAllButton != null) {
             selectAllButton.setText("✓ Chọn tất cả");
         }
+    }
+    
+    private HBox createCPADataRow(String gradeLabel, int numSubjects, int creditPerSubject, double gradePoint, boolean isEven) {
+        HBox dataRow = new HBox();
+        dataRow.setStyle(isEven ? "-fx-background-color: #1d1d1d; -fx-padding: 12px;" : "-fx-background-color: #1a1a1a; -fx-padding: 12px;");
+        dataRow.setSpacing(10);
+        
+        double[] columnWidths = {120.0, 80.0, 100.0, 100.0, 100.0};
+        
+        // Mức điểm
+        Label gradeLabelCell = new Label(gradeLabel);
+        gradeLabelCell.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
+        gradeLabelCell.setPrefWidth(columnWidths[0]);
+        gradeLabelCell.setAlignment(Pos.CENTER);
+        
+        // Số môn
+        Label numSubjectsCell = new Label(String.valueOf(numSubjects));
+        numSubjectsCell.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
+        numSubjectsCell.setPrefWidth(columnWidths[1]);
+        numSubjectsCell.setAlignment(Pos.CENTER);
+        
+        // Tín chỉ/môn
+        Label creditPerSubjectCell = new Label(String.valueOf(creditPerSubject));
+        creditPerSubjectCell.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
+        creditPerSubjectCell.setPrefWidth(columnWidths[2]);
+        creditPerSubjectCell.setAlignment(Pos.CENTER);
+        
+        // Tổng tín chỉ
+        Label totalCreditsCell = new Label(String.valueOf(numSubjects * creditPerSubject));
+        totalCreditsCell.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
+        totalCreditsCell.setPrefWidth(columnWidths[3]);
+        totalCreditsCell.setAlignment(Pos.CENTER);
+        
+        // Điểm thang 4
+        Label gradePointCell = new Label(String.format("%.1f", gradePoint));
+        gradePointCell.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
+        gradePointCell.setPrefWidth(columnWidths[4]);
+        gradePointCell.setAlignment(Pos.CENTER);
+        
+        dataRow.getChildren().addAll(gradeLabelCell, numSubjectsCell, creditPerSubjectCell, totalCreditsCell, gradePointCell);
+        return dataRow;
     }
     
     private void showAlert(Alert.AlertType type, String title, String message) {
