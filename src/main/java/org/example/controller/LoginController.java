@@ -43,7 +43,6 @@ public class LoginController {
         
         // Lấy public key khi khởi tạo
         usernameField.setText("ct070216");
-        passwordField.setText("maimia2505");
         loadPublicKey();
     }
     
