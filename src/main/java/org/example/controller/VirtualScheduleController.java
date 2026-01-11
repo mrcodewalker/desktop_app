@@ -39,124 +39,127 @@ import java.util.stream.Collectors;
 public class VirtualScheduleController {
     @FXML
     private ComboBox<String> courseComboBox;
-    
+
     @FXML
     private ComboBox<String> subjectComboBox;
-    
+
     @FXML
     private ScrollPane coursesScrollPane;
-    
+
     @FXML
     private VBox coursesContainer;
-    
+
     @FXML
     private ScrollPane selectedScheduleScrollPane;
-    
+
     @FXML
     private VBox selectedScheduleContainer;
-    
+
     @FXML
     private Label statusLabel;
-    
-    
+
     @FXML
     private Button clearAllButton;
-    
+
     @FXML
     private Button exportTxtButton;
-    
+
     @FXML
     private Button importTxtButton;
-    
+
     @FXML
     private Button toggleInfoButton;
-    
+
     @FXML
     private SplitPane mainSplitPane;
-    
+
     @FXML
     private VBox fullCalendarView;
-    
+
     @FXML
     private VBox calendarNavigationBox;
-    
+
     @FXML
     private Button prevMonthButton;
-    
+
     @FXML
     private Button nextMonthButton;
-    
+
     @FXML
     private Label currentMonthLabel;
-    
+
     @FXML
     private ScrollPane fullCalendarScrollPane;
-    
+
     @FXML
     private VBox fullCalendarContainer;
-    
+
     @FXML
     private VBox infoPanel;
-    
+
     @FXML
     private TableView<CourseStats> registrationTable;
-    
+
     @FXML
     private TableColumn<CourseStats, String> courseColumn;
-    
+
     @FXML
     private TableColumn<CourseStats, Integer> subjectCountColumn;
-    
+
     @FXML
     private TableColumn<CourseStats, Integer> totalSubjectsColumn;
-    
+
     @FXML
     private TableColumn<CourseStats, String> percentageColumn;
-    
+
     @FXML
     private TableView<SelectedCourseInfo> selectedCoursesTable;
-    
+
     @FXML
     private TableColumn<SelectedCourseInfo, String> selectedCourseColumn;
-    
+
     @FXML
     private TableColumn<SelectedCourseInfo, String> selectedSubjectColumn;
-    
+
     @FXML
     private TableColumn<SelectedCourseInfo, String> selectedClassColumn;
-    
+
     private ApiService apiService;
     private EncryptionService encryptionService;
     private LocalStorageService localStorageService;
-    
+
     private List<VirtualCourse> allCourses = new ArrayList<>();
     private List<VirtualCourse> selectedCourses = new ArrayList<>();
     private Map<String, List<VirtualCourse>> coursesByCourse = new HashMap<>(); // Group by course (AT22, AT21...)
-    private Map<String, List<VirtualCourse>> coursesByDisplayName = new HashMap<>(); // Group by displayCourseName (để filter theo môn)
+    private Map<String, List<VirtualCourse>> coursesByDisplayName = new HashMap<>(); // Group by displayCourseName (để
+                                                                                     // filter theo môn)
     private Map<VirtualCourse, CheckBox> courseCheckBoxMap = new HashMap<>();
     private YearMonth currentDisplayMonth;
-    
+
     @FXML
     public void initialize() {
         apiService = ApiService.getInstance();
         encryptionService = EncryptionService.getInstance();
         localStorageService = LocalStorageService.getInstance();
-        
-        courseComboBox.setOnAction(e -> applyFilters());
+
+        courseComboBox.setOnAction(e -> {
+            updateSubjectComboBox();
+            applyFilters();
+        });
         subjectComboBox.setOnAction(e -> applyFilters());
-        
+
         // Setup registration statistics table
         courseColumn.setCellValueFactory(new PropertyValueFactory<>("course"));
         subjectCountColumn.setCellValueFactory(new PropertyValueFactory<>("registeredCount"));
         totalSubjectsColumn.setCellValueFactory(new PropertyValueFactory<>("totalCount"));
         percentageColumn.setCellValueFactory(new PropertyValueFactory<>("percentage"));
-        
+
         // Setup cell factories for registration table with dark theme
         setupStringTableColumnCellFactory(courseColumn);
         setupIntegerTableColumnCellFactory(subjectCountColumn);
         setupIntegerTableColumnCellFactory(totalSubjectsColumn);
         setupStringTableColumnCellFactory(percentageColumn);
-        
+
         // Apply dark theme styles directly to registration table
         if (registrationTable != null) {
             registrationTable.setStyle("-fx-background-color: #1a1a1a; -fx-control-inner-background: #1a1a1a;");
@@ -178,17 +181,17 @@ public class VirtualScheduleController {
                 applyTableDarkTheme(registrationTable);
             });
         }
-        
+
         // Setup selected courses table
         selectedCourseColumn.setCellValueFactory(new PropertyValueFactory<>("course"));
         selectedSubjectColumn.setCellValueFactory(new PropertyValueFactory<>("subjectName"));
         selectedClassColumn.setCellValueFactory(new PropertyValueFactory<>("classNumber"));
-        
+
         // Setup cell factories for selected courses table with dark theme
         setupStringTableColumnCellFactory(selectedCourseColumn);
         setupStringTableColumnCellFactory(selectedSubjectColumn);
         setupStringTableColumnCellFactory(selectedClassColumn);
-        
+
         // Apply dark theme styles directly to selected courses table
         if (selectedCoursesTable != null) {
             selectedCoursesTable.setStyle("-fx-background-color: #1a1a1a; -fx-control-inner-background: #1a1a1a;");
@@ -210,13 +213,13 @@ public class VirtualScheduleController {
                 applyTableDarkTheme(selectedCoursesTable);
             });
         }
-        
+
         // Initialize calendar view
         currentDisplayMonth = YearMonth.now();
         if (currentMonthLabel != null) {
             updateMonthLabel(currentMonthLabel, currentDisplayMonth);
         }
-        
+
         // Setup calendar navigation
         if (prevMonthButton != null) {
             prevMonthButton.setOnAction(e -> handlePrevMonth());
@@ -225,7 +228,7 @@ public class VirtualScheduleController {
             nextMonthButton.setOnAction(e -> handleNextMonth());
         }
     }
-    
+
     private <T> void setupStringTableColumnCellFactory(TableColumn<T, String> column) {
         column.setCellFactory(col -> new TableCell<T, String>() {
             @Override
@@ -246,7 +249,7 @@ public class VirtualScheduleController {
             }
         });
     }
-    
+
     private <T> void setupIntegerTableColumnCellFactory(TableColumn<T, Integer> column) {
         column.setCellFactory(col -> new TableCell<T, Integer>() {
             @Override
@@ -267,88 +270,87 @@ public class VirtualScheduleController {
             }
         });
     }
-    
+
     private void applyTableDarkTheme(TableView<?> table) {
-        if (table == null) return;
-        
+        if (table == null)
+            return;
+
         // Apply style to table
         table.setStyle("-fx-background-color: #1a1a1a; -fx-control-inner-background: #1a1a1a;");
-        
+
         // Style column headers
         for (TableColumn<?, ?> col : table.getColumns()) {
             col.setStyle("-fx-background-color: #2a2a2a;");
         }
     }
-    
+
     public void loadVirtualCalendar() {
         statusLabel.setText("Đang tải danh sách môn học ảo...");
-        
+
         new Thread(() -> {
             try {
                 // Load credentials từ local storage
                 JsonObject credentials = localStorageService.loadCredentials();
                 if (credentials == null) {
                     Platform.runLater(() -> {
-                        showAlert(Alert.AlertType.ERROR, "Lỗi", 
+                        showAlert(Alert.AlertType.ERROR, "Lỗi",
                                 "Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại.");
                     });
                     return;
                 }
-                
+
                 // Lấy public key
                 String publicKey = apiService.getPublicKey();
                 encryptionService.setPublicKey(publicKey);
-                
+
                 // Gọi API virtual calendar
                 String response = apiService.getVirtualCalendar(
-                    credentials.get("encryptedKey").getAsString(),
-                    credentials.get("encryptedData").getAsString(),
-                    credentials.get("iv").getAsString()
-                );
-                
+                        credentials.get("encryptedKey").getAsString(),
+                        credentials.get("encryptedData").getAsString(),
+                        credentials.get("iv").getAsString());
+
                 // Parse response
                 JsonObject jsonResponse = JsonParser.parseString(response).getAsJsonObject();
-                
+
                 if (!"200".equals(jsonResponse.get("code").getAsString())) {
-                    String message = jsonResponse.has("message") ? 
-                        jsonResponse.get("message").getAsString() : 
-                        "Không thể tải danh sách môn học ảo";
+                    String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString()
+                            : "Không thể tải danh sách môn học ảo";
                     throw new IOException(message);
                 }
-                
+
                 JsonArray virtualCalendar = jsonResponse.getAsJsonArray("virtual_calendar");
-                
+
                 Platform.runLater(() -> {
                     parseAndDisplayCourses(virtualCalendar);
                 });
-                
+
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     statusLabel.setText("Lỗi khi tải danh sách môn học ảo");
-                    showAlert(Alert.AlertType.ERROR, "Lỗi", 
+                    showAlert(Alert.AlertType.ERROR, "Lỗi",
                             "Không thể tải danh sách môn học ảo: " + e.getMessage());
                     e.printStackTrace();
                 });
             }
         }).start();
     }
-    
+
     private void parseAndDisplayCourses(JsonArray virtualCalendar) {
         allCourses.clear();
         coursesByCourse.clear();
         coursesByDisplayName.clear();
-        
+
         for (JsonElement element : virtualCalendar) {
             JsonObject courseObj = element.getAsJsonObject();
-            
+
             VirtualCourse course = new VirtualCourse();
             course.setCourse(getStringValue(courseObj, "course"));
             course.setBaseTime(getStringValue(courseObj, "base_time"));
-            
+
             // Lưu course_name từ ngoài (tên thường, không có mã lớp) - dùng để filter
             String displayCourseName = getStringValue(courseObj, "course_name");
             course.setDisplayCourseName(displayCourseName);
-            
+
             if (courseObj.has("details")) {
                 JsonObject details = courseObj.getAsJsonObject("details");
                 // Sử dụng course_name từ details (có mã lớp trong ngoặc như A22C10D901)
@@ -359,7 +361,7 @@ public class VirtualScheduleController {
                 } else {
                     course.setCourseName(displayCourseName);
                 }
-                
+
                 course.setCourseCode(getStringValue(details, "course_code"));
                 course.setTeacher(getStringValue(details, "teacher"));
                 course.setStudyLocation(getStringValue(details, "study_location"));
@@ -368,154 +370,192 @@ public class VirtualScheduleController {
             } else {
                 course.setCourseName(displayCourseName);
             }
-            
+
             // Không parse schedule slots ngay - sẽ parse lazy khi cần
             // course.parseScheduleSlots(); // Comment out để lazy load
-            
+
             allCourses.add(course);
-            
+
             // Group by course (AT22, AT21, etc.)
             String courseKey = course.getCourse();
             coursesByCourse.computeIfAbsent(courseKey, k -> new ArrayList<>()).add(course);
-            
+
             // Group by displayCourseName (để filter theo môn học)
             if (displayCourseName != null && !displayCourseName.isEmpty()) {
                 coursesByDisplayName.computeIfAbsent(displayCourseName, k -> new ArrayList<>()).add(course);
             }
         }
-        
+
         // Update course combo box
         courseComboBox.getItems().clear();
         courseComboBox.getItems().add("Tất cả khóa");
         courseComboBox.getItems().addAll(coursesByCourse.keySet().stream().sorted().collect(Collectors.toList()));
         courseComboBox.getSelectionModel().select(0);
-        
+
         // Update subject combo box
         subjectComboBox.getItems().clear();
         subjectComboBox.getItems().add("Tất cả môn");
         subjectComboBox.getItems().addAll(coursesByDisplayName.keySet().stream().sorted().collect(Collectors.toList()));
         subjectComboBox.getSelectionModel().select(0);
-        
+
         applyFilters();
         updateRegistrationTable();
-        
+
         // Đếm số môn học distinct theo displayCourseName
         long distinctSubjectCount = allCourses.stream()
-            .map(VirtualCourse::getDisplayCourseName)
-            .filter(name -> name != null && !name.isEmpty())
-            .distinct()
-            .count();
-        
+                .map(VirtualCourse::getDisplayCourseName)
+                .filter(name -> name != null && !name.isEmpty())
+                .distinct()
+                .count();
+
         statusLabel.setText("Đã tải " + distinctSubjectCount + " môn học (" + allCourses.size() + " lớp)");
-        
+
         // Restore selected courses từ local storage
         restoreSelectedCourses();
-        
+
         // Hiển thị calendar view ban đầu
         if (fullCalendarContainer != null && currentDisplayMonth != null) {
             displayCalendarGrid(fullCalendarContainer, currentDisplayMonth);
         }
     }
-    
+
+    /**
+     * Cập nhật danh sách môn học trong subjectComboBox dựa trên khóa đã chọn
+     */
+    private void updateSubjectComboBox() {
+        String selectedCourse = courseComboBox.getSelectionModel().getSelectedItem();
+        String currentSelectedSubject = subjectComboBox.getSelectionModel().getSelectedItem();
+
+        subjectComboBox.getItems().clear();
+        subjectComboBox.getItems().add("Tất cả môn");
+
+        if (selectedCourse != null && !"Tất cả khóa".equals(selectedCourse)) {
+            // Lọc môn học theo khóa đã chọn
+            List<String> subjectsForCourse = allCourses.stream()
+                    .filter(c -> selectedCourse.equals(c.getCourse()))
+                    .map(VirtualCourse::getDisplayCourseName)
+                    .filter(name -> name != null && !name.isEmpty())
+                    .distinct()
+                    .sorted()
+                    .collect(Collectors.toList());
+            subjectComboBox.getItems().addAll(subjectsForCourse);
+        } else {
+            // Hiển thị tất cả môn học
+            subjectComboBox.getItems().addAll(
+                    coursesByDisplayName.keySet().stream().sorted().collect(Collectors.toList()));
+        }
+
+        // Giữ lựa chọn môn học hiện tại nếu vẫn có trong danh sách mới
+        if (currentSelectedSubject != null && subjectComboBox.getItems().contains(currentSelectedSubject)) {
+            subjectComboBox.getSelectionModel().select(currentSelectedSubject);
+        } else {
+            subjectComboBox.getSelectionModel().select(0); // Chọn "Tất cả môn"
+        }
+    }
+
     @FXML
     private void applyFilters() {
         String selectedCourse = courseComboBox.getSelectionModel().getSelectedItem();
         String selectedSubject = subjectComboBox.getSelectionModel().getSelectedItem();
-        
+
         List<VirtualCourse> coursesToShow = new ArrayList<>(allCourses);
-        
+
         // Filter by course (AT22, AT21...)
         if (selectedCourse != null && !"Tất cả khóa".equals(selectedCourse)) {
             coursesToShow = coursesToShow.stream()
-                .filter(c -> selectedCourse.equals(c.getCourse()))
-                .collect(Collectors.toList());
+                    .filter(c -> selectedCourse.equals(c.getCourse()))
+                    .collect(Collectors.toList());
         }
-        
+
         // Filter by subject (displayCourseName)
         if (selectedSubject != null && !"Tất cả môn".equals(selectedSubject)) {
             coursesToShow = coursesToShow.stream()
-                .filter(c -> selectedSubject.equals(c.getDisplayCourseName()))
-                .collect(Collectors.toList());
+                    .filter(c -> selectedSubject.equals(c.getDisplayCourseName()))
+                    .collect(Collectors.toList());
         }
-        
+
         displayCourses(coursesToShow);
     }
-    
+
     private void displayCourses(List<VirtualCourse> courses) {
         coursesContainer.getChildren().clear();
         courseCheckBoxMap.clear();
-        
+
         for (VirtualCourse course : courses) {
             VBox courseBox = createCourseBox(course);
             coursesContainer.getChildren().add(courseBox);
         }
     }
-    
+
     private VBox createCourseBox(VirtualCourse course) {
         VBox courseBox = new VBox(10);
         courseBox.setPadding(new Insets(15));
-        courseBox.setStyle("-fx-background-color: #2a2a2a; -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.2), 5, 0, 0, 2);");
-        
+        courseBox.setStyle(
+                "-fx-background-color: #2a2a2a; -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.2), 5, 0, 0, 2);");
+
         // Hover effect
         courseBox.setOnMouseEntered(e -> {
-            courseBox.setStyle("-fx-background-color: #333333; -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.4), 7, 0, 0, 3);");
+            courseBox.setStyle(
+                    "-fx-background-color: #333333; -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.4), 7, 0, 0, 3);");
         });
         courseBox.setOnMouseExited(e -> {
-            courseBox.setStyle("-fx-background-color: #2a2a2a; -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.2), 5, 0, 0, 2);");
+            courseBox.setStyle(
+                    "-fx-background-color: #2a2a2a; -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.2), 5, 0, 0, 2);");
         });
-        
+
         HBox headerBox = new HBox(10);
         headerBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        
+
         CheckBox checkBox = new CheckBox();
         checkBox.setUserData(course);
         checkBox.setOnAction(e -> handleCourseSelection(course, checkBox.isSelected()));
         courseCheckBoxMap.put(course, checkBox);
-        
+
         // Update checkbox state
         checkBox.setSelected(selectedCourses.contains(course));
-        
+
         // Style checkbox for dark theme
         checkBox.setStyle("-fx-text-fill: #ffffff;");
-        
+
         // Hiển thị lớp số nếu có
         String classNumber = course.getClassNumber();
         HBox titleBox = new HBox(8);
         titleBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        
+
         Label courseNameLabel = new Label(course.getCourseName());
         courseNameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #ffffff;");
         courseNameLabel.setWrapText(true);
-        
+
         // Hiển thị: checkbox, tên môn học, lớp số (nếu có)
         titleBox.getChildren().add(checkBox);
         titleBox.getChildren().add(courseNameLabel);
-        
+
         if (!classNumber.isEmpty()) {
             Label classLabel = new Label(classNumber);
-            classLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #ffffff; -fx-background-color: linear-gradient(to bottom, #00d4ff, #0099cc); -fx-padding: 5 10 5 10; -fx-background-radius: 12; -fx-effect: dropshadow(one-pass-box, rgba(0,212,255,0.4), 3, 0, 0, 1);");
+            classLabel.setStyle(
+                    "-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #ffffff; -fx-background-color: linear-gradient(to bottom, #00d4ff, #0099cc); -fx-padding: 5 10 5 10; -fx-background-radius: 12; -fx-effect: dropshadow(one-pass-box, rgba(0,212,255,0.4), 3, 0, 0, 1);");
             titleBox.getChildren().add(classLabel);
         }
-        
+
         headerBox.getChildren().add(titleBox);
-        
+
         // Course info
         VBox infoBox = new VBox(6);
         infoBox.setPadding(new Insets(8, 0, 0, 0));
-        
+
         // Hiển thị lớp số nếu có (sử dụng lại biến classNumber đã khai báo ở trên)
         if (!classNumber.isEmpty()) {
             Label classLabel = new Label("📚 Lớp: " + classNumber);
             classLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #00d4ff; -fx-font-weight: bold;");
             infoBox.getChildren().add(classLabel);
         }
-        
+
         if (course.getCourseCode() != null && !course.getCourseCode().isEmpty()) {
             Label codeLabel = new Label("🔢 Mã môn: " + course.getCourseCode());
             codeLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #99a8b8;");
             infoBox.getChildren().add(codeLabel);
         }
-        
+
         // Hiển thị thời gian từ base_time
         if (course.getBaseTime() != null && !course.getBaseTime().isEmpty()) {
             Label timeLabel = new Label("⏰ " + course.getBaseTime());
@@ -523,7 +563,7 @@ public class VirtualScheduleController {
             timeLabel.setWrapText(true);
             infoBox.getChildren().add(timeLabel);
         }
-        
+
         // Hiển thị thông tin chi tiết từ schedule slots (nếu có)
         if (course.getLessons() != null && !course.getLessons().isEmpty()) {
             // Parse một vài lessons đầu để hiển thị thời gian
@@ -533,29 +573,30 @@ public class VirtualScheduleController {
                 String timeRange = course.mapLessonsToTimeRange(firstLesson);
                 if (!timeRange.equals(firstLesson)) {
                     Label detailTimeLabel = new Label("🕐 " + timeRange);
-                    detailTimeLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #00d4ff; -fx-font-weight: bold; -fx-background-color: #003d4d; -fx-padding: 4 8 4 8; -fx-background-radius: 4; -fx-border-color: #00d4ff; -fx-border-width: 1;");
+                    detailTimeLabel.setStyle(
+                            "-fx-font-size: 13px; -fx-text-fill: #00d4ff; -fx-font-weight: bold; -fx-background-color: #003d4d; -fx-padding: 4 8 4 8; -fx-background-radius: 4; -fx-border-color: #00d4ff; -fx-border-width: 1;");
                     infoBox.getChildren().add(detailTimeLabel);
                 }
             }
         }
-        
+
         if (course.getTeacher() != null && !course.getTeacher().isEmpty()) {
             Label teacherLabel = new Label("👤 " + course.getTeacher());
             teacherLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #99a8b8;");
             infoBox.getChildren().add(teacherLabel);
         }
-        
+
         if (course.getStudyLocation() != null && !course.getStudyLocation().isEmpty()) {
             Label locationLabel = new Label("📍 " + course.getStudyLocation());
             locationLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #99a8b8;");
             infoBox.getChildren().add(locationLabel);
         }
-        
+
         courseBox.getChildren().addAll(headerBox, infoBox);
-        
+
         return courseBox;
     }
-    
+
     private void handleCourseSelection(VirtualCourse course, boolean selected) {
         if (selected) {
             // Kiểm tra xem đã có môn học cùng tên (displayCourseName) chưa
@@ -563,10 +604,10 @@ public class VirtualScheduleController {
             String displayName = course.getDisplayCourseName();
             if (displayName != null && !displayName.isEmpty()) {
                 VirtualCourse existingCourse = selectedCourses.stream()
-                    .filter(c -> displayName.equals(c.getDisplayCourseName()))
-                    .findFirst()
-                    .orElse(null);
-                
+                        .filter(c -> displayName.equals(c.getDisplayCourseName()))
+                        .findFirst()
+                        .orElse(null);
+
                 if (existingCourse != null && !existingCourse.equals(course)) {
                     // Xóa lớp cũ
                     selectedCourses.remove(existingCourse);
@@ -576,57 +617,57 @@ public class VirtualScheduleController {
                     }
                 }
             }
-            
+
             // Kiểm tra trùng lịch
             List<VirtualCourse> conflictingCourses = findConflictingCourses(course);
-            
+
             if (!conflictingCourses.isEmpty()) {
                 // Có trùng lịch, hủy selection và thông báo
                 courseCheckBoxMap.get(course).setSelected(false);
-                
+
                 StringBuilder message = new StringBuilder("Môn học này trùng lịch với:\n");
                 for (VirtualCourse conflict : conflictingCourses) {
                     message.append("- ").append(conflict.getCourseName()).append("\n");
                 }
                 message.append("\nVui lòng hủy chọn các môn trùng hoặc chọn lại.");
-                
+
                 showAlert(Alert.AlertType.WARNING, "Trùng lịch học", message.toString());
                 return;
             }
-            
+
             selectedCourses.add(course);
         } else {
             selectedCourses.remove(course);
         }
-        
+
         updateSelectedScheduleDisplay();
         updateRegistrationTable();
-        
+
         // Lưu selected courses vào local storage
         saveSelectedCourses();
     }
-    
+
     private List<VirtualCourse> findConflictingCourses(VirtualCourse newCourse) {
         List<VirtualCourse> conflicts = new ArrayList<>();
-        
+
         for (VirtualCourse selectedCourse : selectedCourses) {
             if (hasScheduleConflict(newCourse, selectedCourse)) {
                 conflicts.add(selectedCourse);
             }
         }
-        
+
         return conflicts;
     }
-    
+
     private boolean hasScheduleConflict(VirtualCourse course1, VirtualCourse course2) {
         // Parse slots khi cần kiểm tra conflict
         List<VirtualCourse.ScheduleSlot> slots1 = course1.getScheduleSlots();
         List<VirtualCourse.ScheduleSlot> slots2 = course2.getScheduleSlots();
-        
+
         // Giới hạn số lượng so sánh để tránh quá tải
         int maxCompare = Math.min(slots1.size(), 100);
         int maxCompare2 = Math.min(slots2.size(), 100);
-        
+
         for (int i = 0; i < maxCompare; i++) {
             VirtualCourse.ScheduleSlot slot1 = slots1.get(i);
             for (int j = 0; j < maxCompare2; j++) {
@@ -638,29 +679,30 @@ public class VirtualScheduleController {
         }
         return false;
     }
-    
+
     private void updateSelectedScheduleDisplay() {
         // Update calendar view instead of list view
         if (fullCalendarContainer != null && currentDisplayMonth != null) {
             displayCalendarGrid(fullCalendarContainer, currentDisplayMonth);
         }
-        
+
         // Also update selected courses table
         updateSelectedCoursesTable();
     }
-    
+
     private void displayCalendarGrid(VBox container, YearMonth yearMonth) {
-        if (container == null) return;
-        
+        if (container == null)
+            return;
+
         container.getChildren().clear();
-        
+
         if (selectedCourses.isEmpty()) {
             Label emptyLabel = new Label("Chưa có môn học nào được chọn");
             emptyLabel.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 16px; -fx-padding: 50px;");
             container.getChildren().add(emptyLabel);
             return;
         }
-        
+
         // Thu thập tất cả schedule slots từ selectedCourses
         Map<LocalDate, List<VirtualCourse.ScheduleSlot>> slotsByDate = new HashMap<>();
         for (VirtualCourse course : selectedCourses) {
@@ -668,7 +710,7 @@ public class VirtualScheduleController {
                 slotsByDate.computeIfAbsent(slot.getDate(), k -> new ArrayList<>()).add(slot);
             }
         }
-        
+
         // Lọc slots trong tháng hiện tại
         Map<LocalDate, List<VirtualCourse.ScheduleSlot>> monthSlots = new HashMap<>();
         for (Map.Entry<LocalDate, List<VirtualCourse.ScheduleSlot>> entry : slotsByDate.entrySet()) {
@@ -676,112 +718,116 @@ public class VirtualScheduleController {
                 monthSlots.put(entry.getKey(), entry.getValue());
             }
         }
-        
+
         // Tạo calendar grid
         VBox monthBox = createMonthCalendarGrid(yearMonth, monthSlots);
         container.getChildren().add(monthBox);
     }
-    
+
     private VBox createDayScheduleBox(LocalDate date, List<VirtualCourse.ScheduleSlot> slots) {
         VBox dayBox = new VBox(10);
         dayBox.setPadding(new Insets(15));
-        dayBox.setStyle("-fx-background-color: linear-gradient(to bottom, #f8f9fa, #ffffff); -fx-border-color: #d0d0d0; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 4, 0, 0, 2);");
-        
+        dayBox.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #f8f9fa, #ffffff); -fx-border-color: #d0d0d0; -fx-border-radius: 8; -fx-border-width: 1; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 4, 0, 0, 2);");
+
         Label dateLabel = new Label("📅 " + formatDate(date));
         dateLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 17px; -fx-text-fill: #2c3e50; -fx-padding: 0 0 8 0;");
         dayBox.getChildren().add(dateLabel);
-        
+
         // Group slots by course
         Map<VirtualCourse, List<VirtualCourse.ScheduleSlot>> slotsByCourse = new HashMap<>();
         for (VirtualCourse.ScheduleSlot slot : slots) {
             slotsByCourse.computeIfAbsent(slot.getVirtualCourse(), k -> new ArrayList<>()).add(slot);
         }
-        
+
         for (Map.Entry<VirtualCourse, List<VirtualCourse.ScheduleSlot>> entry : slotsByCourse.entrySet()) {
             VirtualCourse course = entry.getKey();
             List<VirtualCourse.ScheduleSlot> courseSlots = entry.getValue();
-            
+
             VBox courseSlotBox = new VBox(6);
             courseSlotBox.setPadding(new Insets(12));
-            courseSlotBox.setStyle("-fx-background-color: #ffffff; -fx-border-color: #e0e0e0; -fx-border-radius: 6; -fx-border-width: 1; -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.05), 2, 0, 0, 1);");
-            
+            courseSlotBox.setStyle(
+                    "-fx-background-color: #ffffff; -fx-border-color: #e0e0e0; -fx-border-radius: 6; -fx-border-width: 1; -fx-effect: dropshadow(one-pass-box, rgba(0,0,0,0.05), 2, 0, 0, 1);");
+
             HBox titleBox = new HBox(8);
             titleBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-            
+
             Label courseLabel = new Label(course.getCourseName());
             courseLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2980b9;");
-            
+
             // Hiển thị: tên môn học, lớp số (nếu có)
             titleBox.getChildren().add(courseLabel);
-            
+
             // Hiển thị lớp số nếu có
             String classNumber = course.getClassNumber();
             if (!classNumber.isEmpty()) {
                 Label classLabel = new Label(classNumber);
-                classLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #ffffff; -fx-background-color: linear-gradient(to bottom, #3498db, #2980b9); -fx-padding: 4 8 4 8; -fx-background-radius: 10; -fx-effect: dropshadow(one-pass-box, rgba(52,152,219,0.3), 2, 0, 0, 1);");
+                classLabel.setStyle(
+                        "-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #ffffff; -fx-background-color: linear-gradient(to bottom, #3498db, #2980b9); -fx-padding: 4 8 4 8; -fx-background-radius: 10; -fx-effect: dropshadow(one-pass-box, rgba(52,152,219,0.3), 2, 0, 0, 1);");
                 titleBox.getChildren().add(classLabel);
             }
-            
+
             VBox infoBox = new VBox(4);
-            
+
             // Hiển thị thời gian cụ thể từ lessons
             String firstLesson = courseSlots.get(0).getLessons();
             String timeRange = course.mapLessonsToTimeRange(firstLesson);
             if (!timeRange.equals(firstLesson)) {
                 Label timeLabel = new Label("🕐 " + timeRange);
-                timeLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #2980b9; -fx-font-weight: bold; -fx-background-color: #e8f4f8; -fx-padding: 5 10 5 10; -fx-background-radius: 5;");
+                timeLabel.setStyle(
+                        "-fx-font-size: 13px; -fx-text-fill: #2980b9; -fx-font-weight: bold; -fx-background-color: #e8f4f8; -fx-padding: 5 10 5 10; -fx-background-radius: 5;");
                 infoBox.getChildren().add(timeLabel);
             } else {
                 Label lessonsLabel = new Label("📖 Tiết: " + firstLesson);
                 lessonsLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #495057;");
                 infoBox.getChildren().add(lessonsLabel);
             }
-            
+
             if (course.getStudyLocation() != null && !course.getStudyLocation().isEmpty()) {
                 Label locationLabel = new Label("📍 " + course.getStudyLocation());
                 locationLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #7f8c8d;");
                 infoBox.getChildren().add(locationLabel);
             }
-            
+
             if (course.getTeacher() != null && !course.getTeacher().isEmpty()) {
                 Label teacherLabel = new Label("👤 " + course.getTeacher());
                 teacherLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #7f8c8d;");
                 infoBox.getChildren().add(teacherLabel);
             }
-            
+
             if (course.getCourseCode() != null && !course.getCourseCode().isEmpty()) {
                 Label codeLabel = new Label("Mã: " + course.getCourseCode());
                 codeLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #6c757d;");
                 infoBox.getChildren().add(codeLabel);
             }
-            
+
             courseSlotBox.getChildren().addAll(titleBox, infoBox);
             dayBox.getChildren().add(courseSlotBox);
         }
-        
+
         return dayBox;
     }
-    
+
     @FXML
     private void handleExportTxt() {
         if (selectedCourses.isEmpty()) {
-            showAlert(Alert.AlertType.WARNING, "Cảnh báo", 
+            showAlert(Alert.AlertType.WARNING, "Cảnh báo",
                     "Không có môn học nào được chọn để xuất.");
             return;
         }
-        
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Lưu danh sách môn học đã chọn");
         fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Text Files", "*.txt")
-        );
+                new FileChooser.ExtensionFilter("Text Files", "*.txt"));
         fileChooser.setInitialFileName("danh_sach_mon_hoc.txt");
-        
+
         Stage stage = (Stage) exportTxtButton.getScene().getWindow();
         File file = fileChooser.showSaveDialog(stage);
-        
+
         if (file != null) {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, java.nio.charset.StandardCharsets.UTF_8))) {
+            try (BufferedWriter writer = new BufferedWriter(
+                    new FileWriter(file, java.nio.charset.StandardCharsets.UTF_8))) {
                 // Ghi header
                 writer.write("# Danh sách môn học đã chọn");
                 writer.newLine();
@@ -790,39 +836,39 @@ public class VirtualScheduleController {
                 writer.write("# Tổng số: " + selectedCourses.size() + " môn học");
                 writer.newLine();
                 writer.newLine();
-                
+
                 // Ghi danh sách môn học
                 for (VirtualCourse course : selectedCourses) {
                     writer.write(course.getCourseName());
                     writer.newLine();
                 }
-                
-                showAlert(Alert.AlertType.INFORMATION, "Thành công", 
+
+                showAlert(Alert.AlertType.INFORMATION, "Thành công",
                         "Đã xuất danh sách môn học thành công!\nFile: " + file.getAbsolutePath());
             } catch (IOException e) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", 
+                showAlert(Alert.AlertType.ERROR, "Lỗi",
                         "Không thể xuất file: " + e.getMessage());
                 e.printStackTrace();
             }
         }
     }
-    
+
     @FXML
     private void handleImportTxt() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Chọn file danh sách môn học");
         fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Text Files", "*.txt")
-        );
-        
+                new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+
         Stage stage = (Stage) importTxtButton.getScene().getWindow();
         File file = fileChooser.showOpenDialog(stage);
-        
+
         if (file != null) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(file, java.nio.charset.StandardCharsets.UTF_8))) {
+            try (BufferedReader reader = new BufferedReader(
+                    new FileReader(file, java.nio.charset.StandardCharsets.UTF_8))) {
                 Set<String> courseNamesToImport = new HashSet<>();
                 String line;
-                
+
                 // Đọc file, bỏ qua các dòng comment (bắt đầu bằng #)
                 while ((line = reader.readLine()) != null) {
                     line = line.trim();
@@ -830,27 +876,27 @@ public class VirtualScheduleController {
                         courseNamesToImport.add(line);
                     }
                 }
-                
+
                 if (courseNamesToImport.isEmpty()) {
-                    showAlert(Alert.AlertType.WARNING, "Cảnh báo", 
+                    showAlert(Alert.AlertType.WARNING, "Cảnh báo",
                             "File không chứa môn học nào.");
                     return;
                 }
-                
+
                 // Tìm và chọn các môn học matching
                 int foundCount = 0;
                 int notFoundCount = 0;
                 List<String> notFoundCourses = new ArrayList<>();
-                
+
                 // Xóa tất cả selection hiện tại
                 handleClearAll();
-                
+
                 // Tìm và chọn các môn học
                 for (VirtualCourse course : allCourses) {
                     if (courseNamesToImport.contains(course.getCourseName())) {
                         // Kiểm tra trùng lịch trước khi chọn
                         List<VirtualCourse> conflictingCourses = findConflictingCourses(course);
-                        
+
                         if (conflictingCourses.isEmpty()) {
                             selectedCourses.add(course);
                             if (courseCheckBoxMap.containsKey(course)) {
@@ -862,26 +908,26 @@ public class VirtualScheduleController {
                             notFoundCount++;
                             notFoundCourses.add(course.getCourseName() + " (trùng lịch)");
                         }
-                        
+
                         courseNamesToImport.remove(course.getCourseName());
                     }
                 }
-                
+
                 // Các môn không tìm thấy
                 notFoundCourses.addAll(courseNamesToImport);
                 notFoundCount += courseNamesToImport.size();
-                
+
                 // Cập nhật UI
                 updateSelectedScheduleDisplay();
                 updateRegistrationTable();
-                
+
                 // Lưu vào local storage
                 saveSelectedCourses();
-                
+
                 // Thông báo kết quả
                 StringBuilder message = new StringBuilder();
                 message.append("Đã nhập ").append(foundCount).append(" môn học.\n");
-                
+
                 if (notFoundCount > 0) {
                     message.append("\nKhông tìm thấy hoặc không thể chọn: ").append(notFoundCount).append(" môn:\n");
                     int showCount = Math.min(5, notFoundCourses.size());
@@ -892,54 +938,54 @@ public class VirtualScheduleController {
                         message.append("... và ").append(notFoundCourses.size() - 5).append(" môn khác");
                     }
                 }
-                
+
                 showAlert(Alert.AlertType.INFORMATION, "Kết quả nhập file", message.toString());
-                
+
             } catch (IOException e) {
-                showAlert(Alert.AlertType.ERROR, "Lỗi", 
+                showAlert(Alert.AlertType.ERROR, "Lỗi",
                         "Không thể đọc file: " + e.getMessage());
                 e.printStackTrace();
             }
         }
     }
-    
+
     @FXML
     private void handleClearAll() {
         selectedCourses.clear();
         updateSelectedScheduleDisplay();
         updateRegistrationTable();
-        
+
         // Uncheck all checkboxes
         for (Map.Entry<VirtualCourse, CheckBox> entry : courseCheckBoxMap.entrySet()) {
             entry.getValue().setSelected(false);
         }
-        
+
         // Lưu vào local storage (xóa tất cả)
         saveSelectedCourses();
     }
-    
+
     @FXML
     private void handleViewCalendar() {
         // Method này không còn cần thiết vì calendar view đã được hiển thị mặc định
         // Giữ lại để tránh lỗi nếu có reference từ FXML cũ
     }
-    
+
     @FXML
     private void handleToggleInfo() {
         // Hiển thị popup dialog với thông tin đăng ký
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("📊 Thông tin đăng ký");
         dialog.setHeaderText(null);
-        
+
         VBox content = new VBox(20);
         content.setPadding(new Insets(20));
         content.setStyle("-fx-background-color: #1a1a1a;");
         content.setPrefWidth(700);
-        
+
         // Bảng thông tin đăng ký
         Label regTitle = new Label("📊 Bảng thông tin đăng ký");
         regTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
-        
+
         TableView<CourseStats> regTable = new TableView<>();
         regTable.setStyle("-fx-background-color: #1a1a1a; -fx-control-inner-background: #1a1a1a;");
         regTable.setPrefHeight(200);
@@ -957,7 +1003,7 @@ public class VirtualScheduleController {
             });
             return row;
         });
-        
+
         TableColumn<CourseStats, String> courseCol = new TableColumn<>("Khóa");
         courseCol.setCellValueFactory(new PropertyValueFactory<>("course"));
         courseCol.setPrefWidth(90);
@@ -974,7 +1020,7 @@ public class VirtualScheduleController {
                 }
             }
         });
-        
+
         TableColumn<CourseStats, Integer> regCountCol = new TableColumn<>("Đã đăng ký");
         regCountCol.setCellValueFactory(new PropertyValueFactory<>("registeredCount"));
         regCountCol.setPrefWidth(120);
@@ -991,7 +1037,7 @@ public class VirtualScheduleController {
                 }
             }
         });
-        
+
         TableColumn<CourseStats, Integer> totalCol = new TableColumn<>("Tổng số môn");
         totalCol.setCellValueFactory(new PropertyValueFactory<>("totalCount"));
         totalCol.setPrefWidth(120);
@@ -1008,7 +1054,7 @@ public class VirtualScheduleController {
                 }
             }
         });
-        
+
         TableColumn<CourseStats, String> percentCol = new TableColumn<>("Tỷ lệ");
         percentCol.setCellValueFactory(new PropertyValueFactory<>("percentage"));
         percentCol.setPrefWidth(100);
@@ -1025,14 +1071,14 @@ public class VirtualScheduleController {
                 }
             }
         });
-        
+
         regTable.getColumns().addAll(courseCol, regCountCol, totalCol, percentCol);
         regTable.getItems().addAll(registrationTable.getItems());
-        
+
         // Bảng danh sách lớp đã chọn
         Label selectedTitle = new Label("✅ Danh sách lớp đã chọn");
         selectedTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
-        
+
         TableView<SelectedCourseInfo> selectedTable = new TableView<>();
         selectedTable.setStyle("-fx-background-color: #1a1a1a; -fx-control-inner-background: #1a1a1a;");
         selectedTable.setPrefHeight(250);
@@ -1050,7 +1096,7 @@ public class VirtualScheduleController {
             });
             return row;
         });
-        
+
         TableColumn<SelectedCourseInfo, String> selCourseCol = new TableColumn<>("Khóa");
         selCourseCol.setCellValueFactory(new PropertyValueFactory<>("course"));
         selCourseCol.setPrefWidth(90);
@@ -1067,7 +1113,7 @@ public class VirtualScheduleController {
                 }
             }
         });
-        
+
         TableColumn<SelectedCourseInfo, String> selSubjectCol = new TableColumn<>("Tên môn học");
         selSubjectCol.setCellValueFactory(new PropertyValueFactory<>("subjectName"));
         selSubjectCol.setPrefWidth(280);
@@ -1084,7 +1130,7 @@ public class VirtualScheduleController {
                 }
             }
         });
-        
+
         TableColumn<SelectedCourseInfo, String> selClassCol = new TableColumn<>("Lớp");
         selClassCol.setCellValueFactory(new PropertyValueFactory<>("classNumber"));
         selClassCol.setPrefWidth(90);
@@ -1101,28 +1147,27 @@ public class VirtualScheduleController {
                 }
             }
         });
-        
+
         selectedTable.getColumns().addAll(selCourseCol, selSubjectCol, selClassCol);
         selectedTable.getItems().addAll(selectedCoursesTable.getItems());
-        
+
         content.getChildren().addAll(regTitle, regTable, selectedTitle, selectedTable);
-        
+
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefHeight(500);
         scrollPane.setStyle("-fx-background-color: #1a1a1a;");
-        
+
         dialog.getDialogPane().setContent(scrollPane);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         dialog.getDialogPane().setStyle("-fx-background-color: #1a1a1a;");
-        
+
         // Style dialog buttons and ensure all white backgrounds are changed
         Platform.runLater(() -> {
             Button closeButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.CLOSE);
             if (closeButton != null) {
                 closeButton.setStyle(
-                    "-fx-background-color: #2a2a2a; -fx-text-fill: #ffffff; -fx-border-color: #00d4ff; -fx-border-width: 1; -fx-border-radius: 5; -fx-background-radius: 5;"
-                );
+                        "-fx-background-color: #2a2a2a; -fx-text-fill: #ffffff; -fx-border-color: #00d4ff; -fx-border-width: 1; -fx-border-radius: 5; -fx-background-radius: 5;");
             }
             // Ensure scroll pane viewport is dark (check for null first)
             javafx.scene.Node viewport = scrollPane.lookup(".viewport");
@@ -1130,10 +1175,10 @@ public class VirtualScheduleController {
                 viewport.setStyle("-fx-background-color: #1a1a1a;");
             }
         });
-        
+
         dialog.showAndWait();
     }
-    
+
     @FXML
     private void handlePrevMonth() {
         if (currentDisplayMonth != null) {
@@ -1146,7 +1191,7 @@ public class VirtualScheduleController {
             }
         }
     }
-    
+
     @FXML
     private void handleNextMonth() {
         if (currentDisplayMonth != null) {
@@ -1159,59 +1204,63 @@ public class VirtualScheduleController {
             }
         }
     }
-    
+
     private void updateMonthLabel(Label label, YearMonth yearMonth) {
-        String monthName = yearMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.forLanguageTag("vi")));
+        String monthName = yearMonth
+                .format(DateTimeFormatter.ofPattern("MMMM yyyy", java.util.Locale.forLanguageTag("vi")));
         label.setText("📅 " + monthName);
         if (label != null) {
             label.setStyle("-fx-text-fill: #00d4ff; -fx-font-weight: bold; -fx-font-size: 20px;");
         }
     }
-    
-    private VBox createMonthCalendarGrid(YearMonth yearMonth, Map<LocalDate, List<VirtualCourse.ScheduleSlot>> slotsByDate) {
+
+    private VBox createMonthCalendarGrid(YearMonth yearMonth,
+            Map<LocalDate, List<VirtualCourse.ScheduleSlot>> slotsByDate) {
         VBox monthBox = new VBox(15);
         monthBox.setPadding(new Insets(20));
         monthBox.setAlignment(Pos.CENTER);
-        monthBox.setStyle("-fx-background-color: linear-gradient(to bottom, #1a1a1a, #0d0d0d); -fx-border-color: #00d4ff; -fx-border-radius: 12; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.3), 10, 0, 0, 3);");
-        
+        monthBox.setStyle(
+                "-fx-background-color: linear-gradient(to bottom, #1a1a1a, #0d0d0d); -fx-border-color: #00d4ff; -fx-border-radius: 12; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.3), 10, 0, 0, 3);");
+
         // Tạo calendar grid
         GridPane calendarGrid = new GridPane();
         calendarGrid.setHgap(3);
         calendarGrid.setVgap(3);
         calendarGrid.setPadding(new Insets(10));
         calendarGrid.setStyle("-fx-background-color: #0d0d0d; -fx-background-radius: 8;");
-        
+
         // Header cho các ngày trong tuần
-        String[] dayNames = {"Chủ Nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"};
+        String[] dayNames = { "Chủ Nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7" };
         for (int i = 0; i < 7; i++) {
             Label dayHeader = new Label(dayNames[i]);
-            dayHeader.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #00d4ff; -fx-padding: 12px; -fx-alignment: center; -fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-background-radius: 6 6 0 0; -fx-border-color: #00d4ff; -fx-border-width: 0 0 1 0;");
+            dayHeader.setStyle(
+                    "-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: #00d4ff; -fx-padding: 12px; -fx-alignment: center; -fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-background-radius: 6 6 0 0; -fx-border-color: #00d4ff; -fx-border-width: 0 0 1 0;");
             dayHeader.setMaxWidth(Double.MAX_VALUE);
             dayHeader.setPrefHeight(45);
             GridPane.setHgrow(dayHeader, Priority.ALWAYS);
             calendarGrid.add(dayHeader, i, 0);
         }
-        
+
         // Lấy ngày đầu tiên và cuối cùng của tháng
         LocalDate firstDay = yearMonth.atDay(1);
         LocalDate lastDay = yearMonth.atEndOfMonth();
-        
+
         // Tìm ngày đầu tiên trong tuần (Chủ Nhật)
         LocalDate calendarStart = firstDay.with(DayOfWeek.SUNDAY);
         if (calendarStart.isAfter(firstDay)) {
             calendarStart = calendarStart.minusWeeks(1);
         }
-        
+
         // Tìm ngày cuối cùng trong tuần (Thứ 7)
         LocalDate calendarEnd = lastDay.with(DayOfWeek.SATURDAY);
         if (calendarEnd.isBefore(lastDay)) {
             calendarEnd = calendarEnd.plusWeeks(1);
         }
-        
+
         LocalDate currentDate = calendarStart;
         int row = 1;
         LocalDate today = LocalDate.now();
-        
+
         while (!currentDate.isAfter(calendarEnd)) {
             for (int col = 0; col < 7; col++) {
                 final LocalDate dateForCell = currentDate;
@@ -1220,172 +1269,174 @@ public class VirtualScheduleController {
                 dayCell.setMaxWidth(Double.MAX_VALUE);
                 dayCell.setPrefHeight(130);
                 GridPane.setHgrow(dayCell, Priority.ALWAYS);
-                
+
                 // Thêm click handler để hiển thị popup
                 if (!daySlots.isEmpty()) {
                     final List<VirtualCourse.ScheduleSlot> slotsForDialog = new ArrayList<>(daySlots);
                     dayCell.setOnMouseClicked(e -> showDayDetailsDialog(dateForCell, slotsForDialog));
                 }
-                
+
                 calendarGrid.add(dayCell, col, row);
-                
+
                 currentDate = currentDate.plusDays(1);
             }
             row++;
         }
-        
+
         monthBox.getChildren().add(calendarGrid);
         return monthBox;
     }
-    
-    private VBox createDayCell(LocalDate date, YearMonth yearMonth, List<VirtualCourse.ScheduleSlot> slots, boolean isToday) {
+
+    private VBox createDayCell(LocalDate date, YearMonth yearMonth, List<VirtualCourse.ScheduleSlot> slots,
+            boolean isToday) {
         VBox dayCell = new VBox(4);
         dayCell.setPadding(new Insets(5));
         dayCell.setAlignment(Pos.TOP_CENTER);
-        
+
         // Xác định style dựa trên ngày - Theme đen
         boolean isCurrentMonth = YearMonth.from(date).equals(yearMonth);
         String backgroundColor = isToday ? "#003d4d" : (isCurrentMonth ? "#1a1a1a" : "#0d0d0d");
         String borderColor = isToday ? "#00d4ff" : (slots.isEmpty() ? "#333333" : "#00d4ff");
         String textColor = isToday ? "#00d4ff" : (isCurrentMonth ? "#ffffff" : "#666666");
         int borderWidth = isToday ? 3 : (slots.isEmpty() ? 1 : 2);
-        
+
         dayCell.setStyle(String.format(
-            "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
-            backgroundColor, borderColor, borderWidth
-        ));
-        
+                "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
+                backgroundColor, borderColor, borderWidth));
+
         // Số ngày
         Label dayNumber = new Label(String.valueOf(date.getDayOfMonth()));
         dayNumber.setStyle(String.format(
-            "-fx-font-weight: %s; -fx-font-size: %dpx; -fx-text-fill: %s;",
-            isToday ? "bold" : "normal",
-            isToday ? 16 : 14,
-            textColor
-        ));
+                "-fx-font-weight: %s; -fx-font-size: %dpx; -fx-text-fill: %s;",
+                isToday ? "bold" : "normal",
+                isToday ? 16 : 14,
+                textColor));
         dayCell.getChildren().add(dayNumber);
-        
+
         // Hiển thị số lượng buổi học
         if (!slots.isEmpty()) {
             // Thêm background highlight cho ngày có lịch - màu xanh cyan nổi bật
             if (!isToday) {
                 dayCell.setStyle(String.format(
-                    "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
-                    isCurrentMonth ? "#002a33" : "#0d0d0d", "#00d4ff", 2
-                ));
+                        "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
+                        isCurrentMonth ? "#002a33" : "#0d0d0d", "#00d4ff", 2));
             }
-            
+
             Label countLabel = new Label(slots.size() + " buổi");
-            countLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #00ff88; -fx-font-weight: bold; -fx-background-color: #003d1a; -fx-padding: 2 6 2 6; -fx-background-radius: 10; -fx-border-color: #00ff88; -fx-border-width: 1;");
+            countLabel.setStyle(
+                    "-fx-font-size: 10px; -fx-text-fill: #00ff88; -fx-font-weight: bold; -fx-background-color: #003d1a; -fx-padding: 2 6 2 6; -fx-background-radius: 10; -fx-border-color: #00ff88; -fx-border-width: 1;");
             dayCell.getChildren().add(countLabel);
-            
+
             // Hiển thị tối đa 2 môn học đầu tiên
             int maxDisplay = Math.min(slots.size(), 2);
             Set<String> displayedSubjects = new HashSet<>();
             int displayedCount = 0;
-            
+
             for (VirtualCourse.ScheduleSlot slot : slots) {
-                if (displayedCount >= maxDisplay) break;
-                
+                if (displayedCount >= maxDisplay)
+                    break;
+
                 VirtualCourse course = slot.getVirtualCourse();
-                String subjectText = course.getDisplayCourseName() != null ? 
-                    course.getDisplayCourseName() : course.getCourseName();
-                
+                String subjectText = course.getDisplayCourseName() != null ? course.getDisplayCourseName()
+                        : course.getCourseName();
+
                 if (displayedSubjects.add(subjectText)) {
                     if (subjectText.length() > 15) {
                         subjectText = subjectText.substring(0, 13) + "...";
                     }
                     Label subjectLabel = new Label(subjectText);
-                    subjectLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #00d4ff; -fx-padding: 2 4 2 4; -fx-background-color: #003d4d; -fx-background-radius: 4; -fx-max-width: 100; -fx-border-color: #00d4ff; -fx-border-width: 0.5;");
+                    subjectLabel.setStyle(
+                            "-fx-font-size: 9px; -fx-text-fill: #00d4ff; -fx-padding: 2 4 2 4; -fx-background-color: #003d4d; -fx-background-radius: 4; -fx-max-width: 100; -fx-border-color: #00d4ff; -fx-border-width: 0.5;");
                     subjectLabel.setWrapText(true);
                     dayCell.getChildren().add(subjectLabel);
                     displayedCount++;
                 }
             }
-            
+
             if (slots.size() > maxDisplay) {
                 Label moreLabel = new Label("+" + (slots.size() - maxDisplay) + " nữa");
                 moreLabel.setStyle("-fx-font-size: 9px; -fx-text-fill: #00d4ff; -fx-font-style: italic;");
                 dayCell.getChildren().add(moreLabel);
             }
-            
+
             // Thêm cursor và hover effect - màu xanh cyan sáng
             dayCell.setCursor(javafx.scene.Cursor.HAND);
             dayCell.setOnMouseEntered(e -> {
                 dayCell.setStyle(String.format(
-                    "-fx-background-color: %s; -fx-border-color: #00ffff; -fx-border-radius: 6; -fx-border-width: 3; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,255,255,0.5), 5, 0, 0, 2);",
-                    isToday ? "#004d5d" : (isCurrentMonth ? "#002a33" : "#0d0d0d")
-                ));
+                        "-fx-background-color: %s; -fx-border-color: #00ffff; -fx-border-radius: 6; -fx-border-width: 3; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(0,255,255,0.5), 5, 0, 0, 2);",
+                        isToday ? "#004d5d" : (isCurrentMonth ? "#002a33" : "#0d0d0d")));
             });
-            
+
             dayCell.setOnMouseExited(e -> {
-                String bgColor = isToday ? "#003d4d" : (isCurrentMonth ? (!slots.isEmpty() ? "#002a33" : "#1a1a1a") : "#0d0d0d");
+                String bgColor = isToday ? "#003d4d"
+                        : (isCurrentMonth ? (!slots.isEmpty() ? "#002a33" : "#1a1a1a") : "#0d0d0d");
                 dayCell.setStyle(String.format(
-                    "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
-                    bgColor, borderColor, borderWidth
-                ));
+                        "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
+                        bgColor, borderColor, borderWidth));
             });
         } else {
             // Hover effect cho ngày không có lịch
             dayCell.setOnMouseEntered(e -> {
                 dayCell.setStyle(String.format(
-                    "-fx-background-color: %s; -fx-border-color: #555555; -fx-border-radius: 6; -fx-border-width: 1;",
-                    isCurrentMonth ? "#2a2a2a" : "#0d0d0d"
-                ));
+                        "-fx-background-color: %s; -fx-border-color: #555555; -fx-border-radius: 6; -fx-border-width: 1;",
+                        isCurrentMonth ? "#2a2a2a" : "#0d0d0d"));
             });
-            
+
             dayCell.setOnMouseExited(e -> {
                 dayCell.setStyle(String.format(
-                    "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
-                    backgroundColor, borderColor, borderWidth
-                ));
+                        "-fx-background-color: %s; -fx-border-color: %s; -fx-border-radius: 6; -fx-border-width: %d;",
+                        backgroundColor, borderColor, borderWidth));
             });
         }
-        
+
         return dayCell;
     }
-    
+
     private void showDayDetailsDialog(LocalDate date, List<VirtualCourse.ScheduleSlot> slots) {
         Dialog<Void> dialog = new Dialog<>();
         dialog.setTitle("Chi tiết lịch học");
         dialog.setHeaderText("📅 " + formatDate(date) + " - " + slots.size() + " buổi học");
-        
+
         // Group slots by course
         Map<VirtualCourse, List<VirtualCourse.ScheduleSlot>> slotsByCourse = new HashMap<>();
         for (VirtualCourse.ScheduleSlot slot : slots) {
             slotsByCourse.computeIfAbsent(slot.getVirtualCourse(), k -> new ArrayList<>()).add(slot);
         }
-        
+
         // Tạo nội dung dialog - Theme đen
         VBox content = new VBox(15);
         content.setPadding(new Insets(20));
         content.setPrefWidth(600);
         content.setStyle("-fx-background-color: #1a1a1a;");
-        
+
         for (Map.Entry<VirtualCourse, List<VirtualCourse.ScheduleSlot>> entry : slotsByCourse.entrySet()) {
             VirtualCourse course = entry.getKey();
             List<VirtualCourse.ScheduleSlot> courseSlots = entry.getValue();
-            
+
             VBox sessionBox = new VBox(10);
             sessionBox.setPadding(new Insets(15));
-            sessionBox.setStyle("-fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.3), 5, 0, 0, 2);");
-            
+            sessionBox.setStyle(
+                    "-fx-background-color: linear-gradient(to bottom, #2a2a2a, #1a1a1a); -fx-border-color: #00d4ff; -fx-border-radius: 8; -fx-border-width: 2; -fx-effect: dropshadow(three-pass-box, rgba(0,212,255,0.3), 5, 0, 0, 2);");
+
             // Môn học
             HBox titleBox = new HBox(8);
             titleBox.setAlignment(Pos.CENTER_LEFT);
-            
-            Label subjectLabel = new Label("📚 " + (course.getDisplayCourseName() != null ? course.getDisplayCourseName() : course.getCourseName()));
-            subjectLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #00d4ff; -fx-padding: 5 0 5 0;");
-            
+
+            Label subjectLabel = new Label("📚 "
+                    + (course.getDisplayCourseName() != null ? course.getDisplayCourseName() : course.getCourseName()));
+            subjectLabel.setStyle(
+                    "-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #00d4ff; -fx-padding: 5 0 5 0;");
+
             String classNumber = course.getClassNumber();
             if (!classNumber.isEmpty()) {
                 Label classLabel = new Label(classNumber);
-                classLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #ffffff; -fx-background-color: linear-gradient(to bottom, #00d4ff, #0099cc); -fx-padding: 4 8 4 8; -fx-background-radius: 10;");
+                classLabel.setStyle(
+                        "-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #ffffff; -fx-background-color: linear-gradient(to bottom, #00d4ff, #0099cc); -fx-padding: 4 8 4 8; -fx-background-radius: 10;");
                 titleBox.getChildren().add(classLabel);
             }
-            
+
             titleBox.getChildren().add(0, subjectLabel);
-            
+
             // Thời gian
             String firstLesson = courseSlots.get(0).getLessons();
             String timeRange = course.mapLessonsToTimeRange(firstLesson);
@@ -1393,9 +1444,10 @@ public class VirtualScheduleController {
             timeBox.setAlignment(Pos.CENTER_LEFT);
             Label timeIcon = new Label("🕐");
             Label timeLabel = new Label(timeRange);
-            timeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #00ff88; -fx-background-color: #003d1a; -fx-padding: 6 14 6 14; -fx-background-radius: 6; -fx-border-color: #00ff88; -fx-border-width: 1;");
+            timeLabel.setStyle(
+                    "-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #00ff88; -fx-background-color: #003d1a; -fx-padding: 6 14 6 14; -fx-background-radius: 6; -fx-border-color: #00ff88; -fx-border-width: 1;");
             timeBox.getChildren().addAll(timeIcon, timeLabel);
-            
+
             VBox infoBox = new VBox(8);
             if (course.getCourseCode() != null && !course.getCourseCode().isEmpty()) {
                 Label codeLabel = new Label("🔢 Mã môn: " + course.getCourseCode());
@@ -1412,41 +1464,41 @@ public class VirtualScheduleController {
                 teacherLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #ffffff;");
                 infoBox.getChildren().add(teacherLabel);
             }
-            
+
             sessionBox.getChildren().addAll(titleBox, timeBox);
             if (!infoBox.getChildren().isEmpty()) {
                 sessionBox.getChildren().add(infoBox);
             }
-            
+
             content.getChildren().add(sessionBox);
         }
-        
+
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefHeight(400);
         scrollPane.setStyle("-fx-background-color: #1a1a1a;");
-        
+
         dialog.getDialogPane().setContent(scrollPane);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         dialog.getDialogPane().setStyle("-fx-background-color: #1a1a1a;");
-        
+
         dialog.showAndWait();
     }
-    
+
     @FXML
-    
+
     private String formatDate(LocalDate date) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         return date.format(formatter);
     }
-    
+
     private String getStringValue(JsonObject obj, String key) {
         if (obj.has(key) && !obj.get(key).isJsonNull()) {
             return obj.get(key).getAsString();
         }
         return "";
     }
-    
+
     /**
      * Trích xuất số lớp từ course_name (helper method)
      */
@@ -1454,16 +1506,16 @@ public class VirtualScheduleController {
         if (courseName == null || courseName.isEmpty()) {
             return "";
         }
-        
+
         int lastOpenParen = courseName.lastIndexOf('(');
         int lastCloseParen = courseName.lastIndexOf(')');
-        
+
         if (lastOpenParen == -1 || lastCloseParen == -1 || lastCloseParen <= lastOpenParen) {
             return "";
         }
-        
+
         String classCode = courseName.substring(lastOpenParen + 1, lastCloseParen);
-        
+
         if (classCode.length() >= 2) {
             String lastTwoDigits = classCode.substring(classCode.length() - 2);
             try {
@@ -1476,66 +1528,68 @@ public class VirtualScheduleController {
                 }
             }
         }
-        
+
         return "";
     }
-    
+
     private void updateSelectedCoursesTable() {
-        if (selectedCoursesTable == null) return;
+        if (selectedCoursesTable == null)
+            return;
         selectedCoursesTable.getItems().clear();
-        
+
         for (VirtualCourse selectedCourse : selectedCourses) {
             SelectedCourseInfo info = new SelectedCourseInfo(
-                selectedCourse.getCourse(),
-                selectedCourse.getDisplayCourseName() != null ? selectedCourse.getDisplayCourseName() : selectedCourse.getCourseName(),
-                selectedCourse.getClassNumber()
-            );
+                    selectedCourse.getCourse(),
+                    selectedCourse.getDisplayCourseName() != null ? selectedCourse.getDisplayCourseName()
+                            : selectedCourse.getCourseName(),
+                    selectedCourse.getClassNumber());
             selectedCoursesTable.getItems().add(info);
         }
-        
+
         // Reapply dark theme after data is added
         Platform.runLater(() -> {
             applyTableDarkTheme(selectedCoursesTable);
         });
     }
-    
+
     private void updateRegistrationTable() {
-        if (registrationTable == null) return;
+        if (registrationTable == null)
+            return;
         registrationTable.getItems().clear();
-        
+
         updateSelectedCoursesTable();
-        
+
         if (allCourses.isEmpty()) {
             return;
         }
-        
+
         // Tính toán thống kê theo từng course (AT22, AT21, etc.)
         Map<String, CourseStats> statsMap = new HashMap<>();
-        
+
         // Khởi tạo stats cho tất cả các course
         // Tính tổng số môn distinct (theo displayCourseName) cho mỗi khóa
         for (String courseKey : coursesByCourse.keySet()) {
             List<VirtualCourse> coursesInKey = coursesByCourse.get(courseKey);
             // Đếm số môn học distinct theo displayCourseName
             long totalDistinctSubjects = coursesInKey.stream()
-                .map(VirtualCourse::getDisplayCourseName)
-                .filter(name -> name != null && !name.isEmpty())
-                .distinct()
-                .count();
-            statsMap.put(courseKey, new CourseStats(courseKey, 0, (int)totalDistinctSubjects));
+                    .map(VirtualCourse::getDisplayCourseName)
+                    .filter(name -> name != null && !name.isEmpty())
+                    .distinct()
+                    .count();
+            statsMap.put(courseKey, new CourseStats(courseKey, 0, (int) totalDistinctSubjects));
         }
-        
+
         // Đếm số môn distinct đã đăng ký cho mỗi course
         Map<String, Set<String>> registeredSubjectsByCourse = new HashMap<>();
         for (VirtualCourse selectedCourse : selectedCourses) {
             String courseKey = selectedCourse.getCourse();
             String displayName = selectedCourse.getDisplayCourseName();
-            
+
             if (displayName != null && !displayName.isEmpty()) {
                 registeredSubjectsByCourse.computeIfAbsent(courseKey, k -> new HashSet<>()).add(displayName);
             }
         }
-        
+
         // Cập nhật số môn đã đăng ký cho mỗi course
         for (Map.Entry<String, Set<String>> entry : registeredSubjectsByCourse.entrySet()) {
             String courseKey = entry.getKey();
@@ -1545,18 +1599,18 @@ public class VirtualScheduleController {
                 stats.setRegisteredCount(registeredCount);
             }
         }
-        
+
         // Thêm vào bảng thống kê
         List<CourseStats> statsList = new ArrayList<>(statsMap.values());
         statsList.sort((a, b) -> a.getCourse().compareTo(b.getCourse()));
         registrationTable.getItems().addAll(statsList);
-        
+
         // Reapply dark theme after data is added
         Platform.runLater(() -> {
             applyTableDarkTheme(registrationTable);
         });
     }
-    
+
     /**
      * Lưu danh sách môn học đã chọn vào local storage
      */
@@ -1571,7 +1625,7 @@ public class VirtualScheduleController {
             System.err.println("Error saving selected courses: " + e.getMessage());
         }
     }
-    
+
     /**
      * Khôi phục danh sách môn học đã chọn từ local storage
      */
@@ -1581,28 +1635,28 @@ public class VirtualScheduleController {
             if (savedSelections == null || savedSelections.size() == 0) {
                 return;
             }
-            
+
             // Tạo set để tìm nhanh
             Set<String> courseNamesToRestore = new HashSet<>();
             for (com.google.gson.JsonElement element : savedSelections) {
                 courseNamesToRestore.add(element.getAsString());
             }
-            
+
             // Tìm và chọn lại các môn học
             int restoredCount = 0;
             List<VirtualCourse> coursesToSelect = new ArrayList<>();
-            
+
             for (VirtualCourse course : allCourses) {
                 if (courseNamesToRestore.contains(course.getCourseName())) {
                     coursesToSelect.add(course);
                 }
             }
-            
+
             // Chọn từng môn học (giống như user click)
             for (VirtualCourse course : coursesToSelect) {
                 // Kiểm tra trùng lịch trước khi restore
                 List<VirtualCourse> conflictingCourses = findConflictingCourses(course);
-                
+
                 if (conflictingCourses.isEmpty()) {
                     selectedCourses.add(course);
                     // Update checkbox nếu đã có trong map
@@ -1612,26 +1666,26 @@ public class VirtualScheduleController {
                     restoredCount++;
                 }
             }
-            
+
             // Cập nhật UI
             if (restoredCount > 0) {
                 updateSelectedScheduleDisplay();
                 updateRegistrationTable();
-                
+
                 // Update lại tất cả checkboxes để đảm bảo đồng bộ
                 Platform.runLater(() -> {
                     for (Map.Entry<VirtualCourse, CheckBox> entry : courseCheckBoxMap.entrySet()) {
                         entry.getValue().setSelected(selectedCourses.contains(entry.getKey()));
                     }
                 });
-                
+
                 statusLabel.setText(statusLabel.getText() + " | Đã khôi phục " + restoredCount + " môn học đã chọn");
             }
         } catch (IOException e) {
             System.err.println("Error loading selected courses: " + e.getMessage());
         }
     }
-    
+
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -1639,7 +1693,7 @@ public class VirtualScheduleController {
         alert.setContentText(message);
         alert.showAndWait();
     }
-    
+
     /**
      * Data class cho bảng thống kê đăng ký
      */
@@ -1647,33 +1701,33 @@ public class VirtualScheduleController {
         private String course;
         private int registeredCount;
         private int totalCount;
-        
+
         public CourseStats(String course, int registeredCount, int totalCount) {
             this.course = course;
             this.registeredCount = registeredCount;
             this.totalCount = totalCount;
         }
-        
+
         public String getCourse() {
             return course;
         }
-        
+
         public int getRegisteredCount() {
             return registeredCount;
         }
-        
+
         public void setRegisteredCount(int registeredCount) {
             this.registeredCount = registeredCount;
         }
-        
+
         public void incrementRegistered() {
             this.registeredCount++;
         }
-        
+
         public int getTotalCount() {
             return totalCount;
         }
-        
+
         public String getPercentage() {
             if (totalCount == 0) {
                 return "0%";
@@ -1682,7 +1736,7 @@ public class VirtualScheduleController {
             return String.format("%.1f%%", percentage);
         }
     }
-    
+
     /**
      * Data class cho bảng danh sách lớp đã chọn
      */
@@ -1690,24 +1744,23 @@ public class VirtualScheduleController {
         private String course;
         private String subjectName;
         private String classNumber;
-        
+
         public SelectedCourseInfo(String course, String subjectName, String classNumber) {
             this.course = course;
             this.subjectName = subjectName;
             this.classNumber = classNumber;
         }
-        
+
         public String getCourse() {
             return course;
         }
-        
+
         public String getSubjectName() {
             return subjectName;
         }
-        
+
         public String getClassNumber() {
             return classNumber;
         }
     }
 }
-
