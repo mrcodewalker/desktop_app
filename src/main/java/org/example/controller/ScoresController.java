@@ -38,40 +38,40 @@ import java.util.Set;
 public class ScoresController {
     @FXML
     private TableView<ScoreItem> scoresTable;
-    
+
     @FXML
     private TableColumn<ScoreItem, String> subjectNameColumn;
-    
+
     @FXML
     private TableColumn<ScoreItem, Integer> creditColumn;
-    
+
     @FXML
     private TableColumn<ScoreItem, Double> scoreFirstColumn;
-    
+
     @FXML
     private TableColumn<ScoreItem, Double> scoreSecondColumn;
-    
+
     @FXML
     private TableColumn<ScoreItem, Double> scoreFinalColumn;
-    
+
     @FXML
     private TableColumn<ScoreItem, Double> scoreOverallColumn;
-    
+
     @FXML
     private TableColumn<ScoreItem, String> scoreTextColumn;
-    
+
     @FXML
     private Button backButton;
-    
+
     @FXML
     private Button infoButton;
-    
+
     // @FXML
     // private Label statusLabel;
-    
+
     @FXML
     private Label name;
-    
+
     @FXML
     private Label studentId;
 
@@ -80,22 +80,23 @@ public class ScoresController {
 
     @FXML
     private Label subject;
-    
+
     @FXML
     private Label gpaLabel;
-    
+
     @FXML
     private Label cpaLabel;
-    
+
     @FXML
     private Label formulaLabel;
-    
+
     @FXML
     private Button virtualScoresButton;
-    
+
     private ApiService apiService;
     private EncryptionService encryptionService;
     private LocalStorageService localStorageService;
+
     // Màu sắc cho điểm số dựa trên giá trị
     private String getScoreColor(double score) {
         if (score >= 9.0) {
@@ -118,20 +119,20 @@ public class ScoresController {
             return "#ff6b6b"; // Đỏ - Kém
         }
     }
-    
+
     @FXML
     public void initialize() {
         apiService = ApiService.getInstance();
         encryptionService = EncryptionService.getInstance();
         localStorageService = LocalStorageService.getInstance();
-        
+
         // Setup công thức tính GPA
         if (formulaLabel != null) {
             formulaLabel.setText("📐 Công thức tính điểm: GPA = Σ(Điểm thang 4 × Số tín chỉ) / Σ(Số tín chỉ) | " +
                     "GPA tính theo các môn kì gần nhất, CPA tính theo tất cả các môn học");
             formulaLabel.setWrapText(true);
         }
-        
+
         // Setup table columns
         subjectNameColumn.setCellValueFactory(new PropertyValueFactory<>("subjectName"));
         creditColumn.setCellValueFactory(new PropertyValueFactory<>("subjectCredit"));
@@ -140,7 +141,7 @@ public class ScoresController {
         scoreFinalColumn.setCellValueFactory(new PropertyValueFactory<>("scoreFinal"));
         scoreOverallColumn.setCellValueFactory(new PropertyValueFactory<>("scoreOverall"));
         scoreTextColumn.setCellValueFactory(new PropertyValueFactory<>("scoreText"));
-        
+
         // Custom cell factory cho tên môn học với icon
         subjectNameColumn.setCellFactory(column -> new TableCell<ScoreItem, String>() {
             @Override
@@ -157,7 +158,7 @@ public class ScoresController {
                 }
             }
         });
-        
+
         // Custom cell factory cho tín chỉ
         creditColumn.setCellFactory(column -> new TableCell<ScoreItem, Integer>() {
             @Override
@@ -175,13 +176,13 @@ public class ScoresController {
                 }
             }
         });
-        
+
         // Custom cell factory cho điểm số với màu random
         setupScoreColumn(scoreFirstColumn, ""); // Điểm thành phần 1 (Điểm GK)
         setupScoreColumn(scoreSecondColumn, ""); // Điểm thành phần 2 (QT)
         setupScoreColumn(scoreFinalColumn, "");
         setupScoreColumn(scoreOverallColumn, "");
-        
+
         // Custom cell factory cho điểm chữ
         scoreTextColumn.setCellFactory(column -> new TableCell<ScoreItem, String>() {
             @Override
@@ -194,17 +195,16 @@ public class ScoresController {
                     String color = getScoreTextColor(item);
                     Label label = new Label(item);
                     label.setStyle(String.format(
-                        "-fx-background-color: %s; -fx-background-radius: 15px; " +
-                        "-fx-padding: 6px 12px; -fx-text-fill: white; -fx-font-weight: bold;",
-                        color
-                    ));
+                            "-fx-background-color: %s; -fx-background-radius: 15px; " +
+                                    "-fx-padding: 6px 12px; -fx-text-fill: white; -fx-font-weight: bold;",
+                            color));
                     setGraphic(label);
                     setText(null);
                     setAlignment(javafx.geometry.Pos.CENTER);
                 }
             }
         });
-        
+
         // Highlight các môn học kì gần nhất và môn trượt
         scoresTable.setRowFactory(tv -> new TableRow<ScoreItem>() {
             @Override
@@ -215,17 +215,17 @@ public class ScoresController {
                     getStyleClass().removeAll("recent-semester", "failed");
                 } else {
                     List<String> styleClasses = new ArrayList<>();
-                    
+
                     if (item.isRecentSemester()) {
                         styleClasses.add("recent-semester");
                     }
-                    
+
                     if (item.isFailed()) {
                         styleClasses.add("failed");
                     }
-                    
+
                     getStyleClass().setAll(styleClasses);
-                    
+
                     if (item.isFailed()) {
                         setStyle("-fx-background-color: #F30024FF; -fx-background-insets: 0;");
                     } else if (item.isRecentSemester()) {
@@ -236,14 +236,14 @@ public class ScoresController {
                 }
             }
         });
-        
+
         // Setup info button
         if (infoButton != null) {
             infoButton.setText("ℹ");
             infoButton.setOnAction(e -> showGradeConversionTable());
         }
     }
-    
+
     private void setupScoreColumn(TableColumn<ScoreItem, Double> column, String emoji) {
         column.setCellFactory(col -> new TableCell<ScoreItem, Double>() {
             @Override
@@ -256,11 +256,10 @@ public class ScoresController {
                     String color = getScoreColor(item);
                     Label label = new Label(emoji + " " + String.format("%.1f", item));
                     label.setStyle(String.format(
-                        "-fx-background-color: %s; -fx-background-radius: 15px; " +
-                        "-fx-padding: 6px 12px; -fx-text-fill: white; -fx-font-weight: bold; " +
-                        "-fx-font-size: 13px;",
-                        color
-                    ));
+                            "-fx-background-color: %s; -fx-background-radius: 15px; " +
+                                    "-fx-padding: 6px 12px; -fx-text-fill: white; -fx-font-weight: bold; " +
+                                    "-fx-font-size: 13px;",
+                            color));
                     setGraphic(label);
                     setText(null);
                     setAlignment(javafx.geometry.Pos.CENTER);
@@ -268,23 +267,34 @@ public class ScoresController {
             }
         });
     }
-    
+
     private String getScoreTextColor(String scoreText) {
-        if (scoreText == null) return "#95a5a6";
+        if (scoreText == null)
+            return "#95a5a6";
         switch (scoreText.toUpperCase()) {
-            case "A+": return "#38ef7d";
-            case "A": return "#667eea";
-            case "B+": return "#4facfe";
-            case "B": return "#43e97b";
-            case "C+": return "#fa709a";
-            case "C": return "#f093fb";
-            case "D+": return "#ffa726";
-            case "D": return "#ff7043";
-            case "F": return "#ff6b6b";
-            default: return "#95a5a6";
+            case "A+":
+                return "#38ef7d";
+            case "A":
+                return "#667eea";
+            case "B+":
+                return "#4facfe";
+            case "B":
+                return "#43e97b";
+            case "C+":
+                return "#fa709a";
+            case "C":
+                return "#f093fb";
+            case "D+":
+                return "#ffa726";
+            case "D":
+                return "#ff7043";
+            case "F":
+                return "#ff6b6b";
+            default:
+                return "#95a5a6";
         }
     }
-    
+
     public void loadScores() {
         // statusLabel.setText("Đang tải điểm thi...");
         scoresTable.getItems().clear();
@@ -298,76 +308,73 @@ public class ScoresController {
             formulaLabel.setText("Công thức tính điểm: GPA = Σ(Điểm thang 4 × Số tín chỉ) / Σ(Số tín chỉ) | " +
                     "GPA tính theo các môn kì gần nhất, CPA tính theo tất cả các môn học");
         }
-        
+
         new Thread(() -> {
             try {
                 // Load credentials từ local storage
                 JsonObject credentials = localStorageService.loadCredentials();
                 if (credentials == null) {
                     Platform.runLater(() -> {
-                        showAlert(Alert.AlertType.ERROR, "Lỗi", 
+                        showAlert(Alert.AlertType.ERROR, "Lỗi",
                                 "Không tìm thấy thông tin đăng nhập. Vui lòng đăng nhập lại.");
                         handleBack();
                     });
                     return;
                 }
-                
+
                 // Lấy studentCode từ student info
                 JsonObject studentInfo = localStorageService.loadStudentInfo();
                 if (studentInfo == null || !studentInfo.has("student_code")) {
                     Platform.runLater(() -> {
-                        showAlert(Alert.AlertType.ERROR, "Lỗi", 
+                        showAlert(Alert.AlertType.ERROR, "Lỗi",
                                 "Không tìm thấy mã sinh viên. Vui lòng đăng nhập lại.");
                         handleBack();
                     });
                     return;
                 }
-                
+
                 String studentCode = studentInfo.get("student_code").getAsString();
-                
+
                 // Lấy public key
                 String publicKey = apiService.getPublicKey();
                 encryptionService.setPublicKey(publicKey);
-                
+
                 // Tạo JSON chứa studentCode để mã hóa
                 JsonObject dataToEncrypt = new JsonObject();
                 dataToEncrypt.addProperty("studentCode", studentCode);
-                
+
                 String dataString = dataToEncrypt.toString();
-                
+
                 // Mã hóa bằng hybrid encryption
-                EncryptionService.EncryptionResult encryptionResult = 
-                    encryptionService.encryptHybrid(dataString);
-                
+                EncryptionService.EncryptionResult encryptionResult = encryptionService.encryptHybrid(dataString);
+
                 // Gọi API điểm thi
                 String response = apiService.getScores(
-                    encryptionResult.getEncryptedKey(),
-                    encryptionResult.getEncryptedData(),
-                    encryptionResult.getIv()
-                );
-                
+                        encryptionResult.getEncryptedKey(),
+                        encryptionResult.getEncryptedData(),
+                        encryptionResult.getIv());
+
                 // Parse response
                 JsonObject jsonResponse = JsonParser.parseString(response).getAsJsonObject();
-                
+
                 // Kiểm tra code nếu có
                 if (jsonResponse.has("code")) {
                     String code = jsonResponse.get("code").getAsString();
                     if (!"200".equals(code)) {
-                        String message = jsonResponse.has("message") ? 
-                            jsonResponse.get("message").getAsString() : 
-                            "Không thể tải điểm thi";
+                        String message = jsonResponse.has("message") ? jsonResponse.get("message").getAsString()
+                                : "Không thể tải điểm thi";
                         throw new IOException(message);
                     }
                 }
-                
+
                 // Lấy dữ liệu từ response
-                JsonObject listScoreDTO = jsonResponse.has("listScoreDTO") 
-                    ? jsonResponse.getAsJsonObject("listScoreDTO") 
-                    : null;
-                JsonArray subjectDTOS = jsonResponse.has("subjectDTOS") 
-                    ? jsonResponse.getAsJsonArray("subjectDTOS") 
-                    : null;
-                
+                JsonObject listScoreDTO = jsonResponse.has("listScoreDTO")
+                        ? jsonResponse.getAsJsonObject("listScoreDTO")
+                        : null;
+                JsonArray subjectDTOS = jsonResponse.has("subjectDTOS")
+                        ? jsonResponse.getAsJsonArray("subjectDTOS")
+                        : null;
+
                 // Tạo set các môn học kì gần nhất để highlight
                 Set<String> recentSemesterSubjects = new HashSet<>();
                 if (subjectDTOS != null) {
@@ -378,7 +385,7 @@ public class ScoresController {
                         }
                     }
                 }
-                
+
                 // Parse student info
                 String studentName = "";
                 String studentCodeDisplay = "";
@@ -389,17 +396,17 @@ public class ScoresController {
                     studentCodeDisplay = getStringValue(studentDTO, "studentCode");
                     studentClass = getStringValue(studentDTO, "studentClass");
                 }
-                
+
                 // Parse scores
-                final JsonArray scoreDTOS = (listScoreDTO != null && listScoreDTO.has("scoreDTOS")) 
-                    ? listScoreDTO.getAsJsonArray("scoreDTOS") 
-                    : null;
-                
+                final JsonArray scoreDTOS = (listScoreDTO != null && listScoreDTO.has("scoreDTOS"))
+                        ? listScoreDTO.getAsJsonArray("scoreDTOS")
+                        : null;
+
                 final String finalStudentName = studentName;
                 final String finalStudentCode = studentCodeDisplay;
                 final String finalStudentClass = studentClass;
                 final Set<String> finalRecentSemesterSubjects = recentSemesterSubjects;
-                
+
                 Platform.runLater(() -> {
                     // Hiển thị thông tin sinh viên
                     StringBuilder studentInfoText = new StringBuilder();
@@ -407,54 +414,56 @@ public class ScoresController {
                         studentInfoText.append("Họ tên: ").append(finalStudentName);
                     }
                     if (!finalStudentCode.isEmpty()) {
-                        if (studentInfoText.length() > 0) studentInfoText.append(" | ");
+                        if (studentInfoText.length() > 0)
+                            studentInfoText.append(" | ");
                         studentInfoText.append("Mã SV: ").append(finalStudentCode);
                     }
                     if (!finalStudentClass.isEmpty()) {
-                        if (studentInfoText.length() > 0) studentInfoText.append(" | ");
+                        if (studentInfoText.length() > 0)
+                            studentInfoText.append(" | ");
                         studentInfoText.append("Lớp: ").append(finalStudentClass);
                     }
                     // studentInfoLabel.setText(studentInfoText.toString());
                     this.name.setText(finalStudentName);
                     this.studentId.setText(finalStudentCode);
                     this.sClass.setText(finalStudentClass);
-                    
+
                     List<ScoreItem> allScores = new ArrayList<>();
                     List<ScoreItem> recentSemesterScores = new ArrayList<>();
-                    
+
                     // Parse và hiển thị điểm
                     if (scoreDTOS != null) {
                         for (JsonElement element : scoreDTOS) {
                             JsonObject scoreObj = element.getAsJsonObject();
                             ScoreItem scoreItem = parseScoreItem(scoreObj);
-                            
+
                             // Đảm bảo tính điểm chữ nếu chưa có
                             scoreItem.ensureScoreText();
-                            
+
                             // Đánh dấu môn học kì gần nhất
                             if (finalRecentSemesterSubjects.contains(scoreItem.getSubjectName())) {
                                 scoreItem.setRecentSemester(true);
                                 recentSemesterScores.add(scoreItem);
                             }
-                            
+
                             // Kiểm tra môn trượt
                             if (scoreItem.checkFailed()) {
                                 scoreItem.setFailed(true);
                             }
-                            
+
                             allScores.add(scoreItem);
                             scoresTable.getItems().add(scoreItem);
                         }
                     }
-                    
+
                     // Tính GPA (theo môn kì gần nhất)
                     double gpa = calculateGPA(recentSemesterScores);
                     gpaLabel.setText(String.format("%.2f", gpa));
-                    
+
                     // Tính CPA (tổng tất cả)
                     double cpa = calculateCPA(allScores);
                     cpaLabel.setText(String.format("%.2f", cpa));
-                    
+
                     // Lưu backup scores để có thể restore trong VirtualScoresController
                     try {
                         JsonObject backupData = new JsonObject();
@@ -463,22 +472,23 @@ public class ScoresController {
                     } catch (Exception e) {
                         System.err.println("Không thể lưu backup scores: " + e.getMessage());
                     }
-                    
+
                     // statusLabel.setText("Đã tải " + scoresTable.getItems().size() + " môn học");
-                    this.subject.setText(String.valueOf(scoresTable.getItems().size())); // You may want to set this to an appropriate value
+                    this.subject.setText(String.valueOf(scoresTable.getItems().size())); // You may want to set this to
+                                                                                         // an appropriate value
                 });
-                
+
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     // statusLabel.setText("Lỗi khi tải điểm thi");
-                    showAlert(Alert.AlertType.ERROR, "Lỗi", 
+                    showAlert(Alert.AlertType.ERROR, "Lỗi",
                             "Không thể tải điểm thi: " + e.getMessage());
                     e.printStackTrace();
                 });
             }
         }).start();
     }
-    
+
     /**
      * Tính GPA theo các môn học kì gần nhất
      */
@@ -486,23 +496,23 @@ public class ScoresController {
         if (recentSemesterScores == null || recentSemesterScores.isEmpty()) {
             return 0.0;
         }
-        
+
         double totalPoints = 0.0;
         int totalCredits = 0;
-        
+
         for (ScoreItem item : recentSemesterScores) {
             double score4 = ScoreItem.convertToScale4(item.getScoreOverall());
             int credit = item.getSubjectCredit();
-            
+
             if (credit > 0) {
                 totalPoints += score4 * credit;
                 totalCredits += credit;
             }
         }
-        
+
         return totalCredits > 0 ? totalPoints / totalCredits : 0.0;
     }
-    
+
     /**
      * Tính CPA theo tất cả các môn học
      */
@@ -510,23 +520,23 @@ public class ScoresController {
         if (allScores == null || allScores.isEmpty()) {
             return 0.0;
         }
-        
+
         double totalPoints = 0.0;
         int totalCredits = 0;
-        
+
         for (ScoreItem item : allScores) {
             double score4 = ScoreItem.convertToScale4(item.getScoreOverall());
             int credit = item.getSubjectCredit();
-            
+
             if (credit > 0) {
                 totalPoints += score4 * credit;
                 totalCredits += credit;
             }
         }
-        
+
         return totalCredits > 0 ? totalPoints / totalCredits : 0.0;
     }
-    
+
     private ScoreItem parseScoreItem(JsonObject obj) {
         ScoreItem item = new ScoreItem();
         item.setSubjectName(getStringValue(obj, "subjectName"));
@@ -538,155 +548,170 @@ public class ScoresController {
         item.setScoreText(getStringValue(obj, "scoreText"));
         return item;
     }
-    
+
     private String getStringValue(JsonObject obj, String key) {
         if (obj.has(key) && !obj.get(key).isJsonNull()) {
             return obj.get(key).getAsString();
         }
         return "";
     }
-    
+
     private int getIntValue(JsonObject obj, String key) {
         if (obj.has(key) && !obj.get(key).isJsonNull()) {
             return obj.get(key).getAsInt();
         }
         return 0;
     }
-    
+
     private double getDoubleValue(JsonObject obj, String key) {
         if (obj.has(key) && !obj.get(key).isJsonNull()) {
             return obj.get(key).getAsDouble();
         }
         return 0.0;
     }
-    
+
     @FXML
     private void showGradeConversionTable() {
         Stage popupStage = new Stage();
-        popupStage.initModality(Modality.APPLICATION_MODAL);
-        popupStage.initStyle(StageStyle.UTILITY);
+        // Dùng WINDOW_MODAL thay vì APPLICATION_MODAL để tránh trigger events với các
+        // window khác
+        popupStage.initModality(Modality.WINDOW_MODAL);
+        popupStage.initOwner(infoButton.getScene().getWindow());
+        popupStage.initStyle(StageStyle.DECORATED);
         popupStage.setTitle("Bảng quy đổi điểm");
-        
+        popupStage.setResizable(false);
+
         VBox root = new VBox(15);
         root.setPadding(new Insets(25));
-        root.setStyle("-fx-background-color: white;");
-        
+        root.setStyle("-fx-background-color: #1a1a1a;");
+
         Label titleLabel = new Label("📊 Bảng quy đổi điểm");
-        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;");
-        
+        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;");
+
         // Tạo bảng
         VBox tableContainer = new VBox(0);
-        tableContainer.setStyle("-fx-border-color: #e0e0e0; -fx-border-radius: 8px; -fx-background-radius: 8px;");
-        
+        tableContainer.setStyle("-fx-border-color: #2a2a2a; -fx-border-radius: 8px; -fx-background-radius: 8px;");
+
         // Header
         HBox headerRow = new HBox();
-        headerRow.setStyle("-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-background-radius: 8px 8px 0 0;");
+        headerRow.setStyle("-fx-background-color: #2254c9; -fx-background-radius: 8px 8px 0 0;");
         headerRow.setPadding(new Insets(12));
         headerRow.setSpacing(10);
-        
-        String[] headers = {"Thang 10", "Thang 4", "Điểm chữ", "Xếp loại"};
+
+        String[] headers = { "Thang 10", "Thang 4", "Điểm chữ", "Xếp loại" };
         for (String header : headers) {
             Label headerLabel = new Label(header);
             headerLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px;");
             headerLabel.setPrefWidth(120);
             headerRow.getChildren().add(headerLabel);
         }
-        
+
         tableContainer.getChildren().add(headerRow);
-        
+
         // Data rows
         String[][] data = {
-            {"9.0 - 10.0", "4", "A+", "Xuất sắc"},
-            {"8.5 - 8.9", "3.8", "A", "Giỏi"},
-            {"7.8 - 8.4", "3.5", "B+", "Khá"},
-            {"7.0 - 7.7", "3", "B", "Khá"},
-            {"6.3 - 6.9", "2.4", "C+", "Trung bình"},
-            {"5.5 - 6.2", "2", "C", "Trung bình"},
-            {"4.8 - 5.4", "1.5", "D+", "Trung bình yếu"},
-            {"4.0 - 4.7", "1", "D", "Trung bình yếu"},
-            {"0.0 - 3.9", "0", "F", "Kém"}
+                { "9.0 - 10.0", "4", "A+", "Xuất sắc" },
+                { "8.5 - 8.9", "3.8", "A", "Giỏi" },
+                { "7.8 - 8.4", "3.5", "B+", "Khá" },
+                { "7.0 - 7.7", "3", "B", "Khá" },
+                { "6.3 - 6.9", "2.4", "C+", "Trung bình" },
+                { "5.5 - 6.2", "2", "C", "Trung bình" },
+                { "4.8 - 5.4", "1.5", "D+", "Trung bình yếu" },
+                { "4.0 - 4.7", "1", "D", "Trung bình yếu" },
+                { "0.0 - 3.9", "0", "F", "Kém" }
         };
-        
+
         for (int i = 0; i < data.length; i++) {
             HBox dataRow = new HBox();
             dataRow.setPadding(new Insets(10, 12, 10, 12));
             dataRow.setSpacing(10);
             if (i % 2 == 0) {
-                dataRow.setStyle("-fx-background-color: #f8f9fa;");
+                dataRow.setStyle("-fx-background-color: #1d1d1d;");
             } else {
-                dataRow.setStyle("-fx-background-color: white;");
+                dataRow.setStyle("-fx-background-color: #1a1a1a;");
             }
-            
+
             for (String cell : data[i]) {
                 Label cellLabel = new Label(cell);
-                cellLabel.setStyle("-fx-text-fill: #FFFFFFFF; -fx-font-size: 12px;");
+                cellLabel.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
                 cellLabel.setPrefWidth(120);
                 dataRow.getChildren().add(cellLabel);
             }
-            
+
             tableContainer.getChildren().add(dataRow);
         }
-        
+
         // Note
         Label noteLabel = new Label("💡 Lưu ý: GPA tính theo các môn kì gần nhất, CPA tính theo tất cả các môn học");
-        noteLabel.setStyle("-fx-text-fill: #7f8c8d; -fx-font-size: 11px; -fx-wrap-text: true;");
+        noteLabel.setStyle("-fx-text-fill: #99a8b8; -fx-font-size: 11px; -fx-wrap-text: true;");
         noteLabel.setMaxWidth(500);
-        
+
         Button closeButton = new Button("Đóng");
-        closeButton.setStyle("-fx-background-color: #667eea; -fx-text-fill: white; -fx-pref-width: 100px; -fx-pref-height: 35px; -fx-background-radius: 5px; -fx-cursor: hand;");
+        closeButton.setStyle(
+                "-fx-background-color: linear-gradient(to right, #3F5EFB, #FC466B); -fx-text-fill: white; -fx-pref-width: 100px; -fx-pref-height: 35px; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: 500;");
         closeButton.setOnAction(e -> popupStage.close());
-        
+
+        closeButton.setOnMouseEntered(e -> {
+            closeButton.setStyle(
+                    "-fx-background-color: linear-gradient(to right, #833AB4, #FD1D1D, #FCB045); -fx-text-fill: white; -fx-pref-width: 100px; -fx-pref-height: 35px; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: 500;");
+        });
+
+        closeButton.setOnMouseExited(e -> {
+            closeButton.setStyle(
+                    "-fx-background-color: linear-gradient(to right, #3F5EFB, #FC466B); -fx-text-fill: white; -fx-pref-width: 100px; -fx-pref-height: 35px; -fx-background-radius: 5px; -fx-cursor: hand; -fx-font-weight: 500;");
+        });
+
         root.getChildren().addAll(titleLabel, tableContainer, noteLabel, closeButton);
         root.setAlignment(Pos.CENTER);
-        
+
         Scene scene = new Scene(root, 550, 600);
         popupStage.setScene(scene);
-        popupStage.setResizable(false);
         popupStage.showAndWait();
     }
-    
+
     @FXML
     private void handleViewVirtualScores() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/VirtualScoresScreen.fxml"));
             Parent root = loader.load();
-            
+
             VirtualScoresController controller = loader.getController();
             controller.loadVirtualScores();
-            
+
             Stage virtualScoresStage = new Stage();
             virtualScoresStage.setScene(new Scene(root, 1800, 1000));
             virtualScoresStage.setTitle("Bảng điểm ảo");
             virtualScoresStage.setMinWidth(1400);
             virtualScoresStage.setMinHeight(800);
-            
+
             // Setup close handler để hiển thị cảnh báo khi đóng
             controller.setupCloseHandler(virtualScoresStage);
-            
-            // Không đóng màn hình xem điểm thi, để có thể quay lại sau khi đóng bảng điểm ảo
+
+            // Không đóng màn hình xem điểm thi, để có thể quay lại sau khi đóng bảng điểm
+            // ảo
             virtualScoresStage.show();
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Lỗi", "Không thể mở bảng điểm ảo: " + e.getMessage());
         }
     }
-    
+
     @FXML
     private void handleBack() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/MainScreen.fxml"));
             Parent root = loader.load();
-            
+
             Stage stage = (Stage) backButton.getScene().getWindow();
             stage.setScene(new Scene(root, 1200, 800));
             stage.setTitle("KMA Legend Desktop - Trang chủ");
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
+
     private void showAlert(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
